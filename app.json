@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Obama HQ",
+    "slug": "obama-hq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "obama-hq",
+    "platforms": ["ios", "android", "web"],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/obama.png"
+    },
+    "plugins": ["expo-router"]
+  }
+}
