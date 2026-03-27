@@ -122,11 +122,11 @@ export function ObamaProvider({ children }) {
   const [collectedRareTraits, setCollectedRareTraits] = useState(new Set());
   const [bidenPopupShown, setBidenPopupShown] = useState(false);
 
-  // ─── Fetch templates from server ───────────────────
+  // ─── Fetch templates from server (poll every 3s for admin changes) ──
   const templatesRef = useRef(null); // { normal: [], synthetic: [], rare: [], michelle: [] }
 
   useEffect(() => {
-    (async () => {
+    async function fetchTemplates() {
       try {
         const res = await fetch('/api/templates');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -137,10 +137,14 @@ export function ObamaProvider({ children }) {
         }
         templatesRef.current = byTier;
       } catch (e) {
-        console.warn('Failed to fetch templates, using hardcoded fallback:', e.message);
-        templatesRef.current = null;
+        if (!templatesRef.current) {
+          console.warn('Failed to fetch templates, using hardcoded fallback:', e.message);
+        }
       }
-    })();
+    }
+    fetchTemplates();
+    const interval = setInterval(fetchTemplates, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const addObama = useCallback(() => {
