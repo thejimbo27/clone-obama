@@ -10,7 +10,9 @@
     "admin": "cd admin && node server.js",
     "seed": "cd admin && node ../db/seed.js",
     "proxy": "node proxy.js",
-    "tunnel": "ngrok start --config ngrok.yml --all"
+    "tunnel": "ngrok http 4000",
+    "container:build": "podman build -t obama-hq -f Containerfile .",
+    "container:run": "podman run --rm -p 4000:4000 -v obama-data:/app/data obama-hq"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.6",
