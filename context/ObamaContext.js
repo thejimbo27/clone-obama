@@ -62,14 +62,13 @@ export function ObamaProvider({ children }) {
 
   const removeObama = useCallback(
     (id) => {
-      setObamas((prev) => prev.filter((o) => o.id !== id));
-      if (hqObamaId === id) {
-        setObamas((curr) => {
-          const remaining = curr.filter((o) => o.id !== id);
-          if (remaining.length > 0) setHqObamaId(remaining[0].id);
-          return remaining;
-        });
-      }
+      setObamas((prev) => {
+        const remaining = prev.filter((o) => o.id !== id);
+        if (hqObamaId === id && remaining.length > 0) {
+          setHqObamaId(remaining[0].id);
+        }
+        return remaining;
+      });
     },
     [hqObamaId]
   );
