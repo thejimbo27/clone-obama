@@ -241,18 +241,30 @@ export default function IslandCanvas() {
     const legSwing = isWalking ? Math.sin(s.walkPhase + Math.PI) * 16 : 0;
     const bobY = isWalking ? Math.sin(s.walkPhase * 2) * 1.5 : Math.sin(s.walkPhase * 0.3) * 0.8;
 
-    const isGolden = o.rareType === 'color' && o.rareTrait === 'golden';
-    const isGhost = o.rareType === 'color' && o.rareTrait === 'ghost';
-    const isHuge = o.rareType === 'deformity' && o.rareTrait === 'huge_head';
-    const isTiny = o.rareType === 'deformity' && o.rareTrait === 'tiny_head';
-    const finalHeadSize = isHuge ? headSize * 1.5 : isTiny ? headSize * 0.6 : headSize;
-    const limbColor = isGolden ? '#ffd700' : isGhost ? 'rgba(200,200,255,0.4)' : '#ffffff';
-    const effectiveOpacity = opacity * (isGhost ? 0.45 : 1);
+    // Head size modifiers
+    const headScales = { huge_head: 1.5, tiny_head: 0.6, squished: 0.7, stretched: 1.3 };
+    const finalHeadSize = headSize * (headScales[o.rareTrait] || 1);
+
+    // Color mapping for all color variants
+    const colorMap = {
+      golden: '#ffd700', ghost: 'rgba(200,200,255,0.4)',
+      neon_green: '#39ff14', blue_tint: '#4488ff', red_tint: '#ff4444',
+      purple: '#9b59b6', sepia: '#8B7355', inverted: '#ffffff',
+    };
+    const limbColor = (o.rareType === 'color' && colorMap[o.rareTrait]) || '#ffffff';
+    const isGhost = o.rareTrait === 'ghost';
+    const effectiveOpacity = opacity * (isGhost ? 0.45 : (o.rareTrait === 'inverted' ? 0.7 : 1));
+
+    // Body modifiers for specialty deformities
+    const neckExtra = o.rareTrait === 'long_neck' ? 8 : 0;
+    const showArms = o.rareTrait !== 'no_arms';
+    const legCount = o.rareTrait === 'extra_legs' ? 4 : 2;
+    const bodyThick = o.rareTrait === 'thicc' ? 3.5 : 2;
 
     const x = s.x;
     const y = s.y + bobY;
-    const torsoTop = y;
-    const torsoBottom = y + 22;
+    const torsoTop = y + neckExtra;
+    const torsoBottom = torsoTop + 22;
     const lArmX = x + Math.sin((armSwing * Math.PI) / 180) * 14;
     const rArmX = x - Math.sin((armSwing * Math.PI) / 180) * 14;
     const armY = torsoTop + 5;
@@ -267,6 +279,7 @@ export default function IslandCanvas() {
       x, y, torsoTop, torsoBottom,
       lArmX, rArmX, armY, armEndY,
       lLegX, rLegX, legEndY,
+      showArms, bodyThick, legCount, neckExtra,
     };
   }).filter(Boolean);
 
@@ -351,7 +364,7 @@ export default function IslandCanvas() {
           {spriteRenders.map((sr) => (
             <Group key={sr.key} opacity={sr.effectiveOpacity}>
               {sr.obama.rareType === 'hat' && (
-                <Circle cx={sr.x} cy={sr.y - sr.finalHeadSize - 8} r={6} color="#ffd700" />
+                <Circle cx={sr.x} cy={sr.y - sr.finalHeadSize - 8} r={6} color={sr.obama.isRare ? '#ffd700' : '#8899aa'} />
               )}
               {sr.headImg && (
                 <SkiaImage
@@ -363,11 +376,29 @@ export default function IslandCanvas() {
                   fit="cover"
                 />
               )}
-              <Line p1={vec(sr.x, sr.torsoTop)} p2={vec(sr.x, sr.torsoBottom)} color={sr.limbColor} strokeWidth={2} />
-              <Line p1={vec(sr.x, sr.armY)} p2={vec(sr.lArmX, sr.armEndY)} color={sr.limbColor} strokeWidth={1.5} />
-              <Line p1={vec(sr.x, sr.armY)} p2={vec(sr.rArmX, sr.armEndY)} color={sr.limbColor} strokeWidth={1.5} />
+              {/* Neck extension */}
+              {sr.neckExtra > 0 && (
+                <Line p1={vec(sr.x, sr.y)} p2={vec(sr.x, sr.torsoTop)} color={sr.limbColor} strokeWidth={sr.bodyThick} />
+              )}
+              {/* Torso */}
+              <Line p1={vec(sr.x, sr.torsoTop)} p2={vec(sr.x, sr.torsoBottom)} color={sr.limbColor} strokeWidth={sr.bodyThick} />
+              {/* Arms */}
+              {sr.showArms && (
+                <>
+                  <Line p1={vec(sr.x, sr.armY)} p2={vec(sr.lArmX, sr.armEndY)} color={sr.limbColor} strokeWidth={1.5} />
+                  <Line p1={vec(sr.x, sr.armY)} p2={vec(sr.rArmX, sr.armEndY)} color={sr.limbColor} strokeWidth={1.5} />
+                </>
+              )}
+              {/* Legs */}
               <Line p1={vec(sr.x, sr.torsoBottom)} p2={vec(sr.lLegX, sr.legEndY)} color={sr.limbColor} strokeWidth={1.5} />
               <Line p1={vec(sr.x, sr.torsoBottom)} p2={vec(sr.rLegX, sr.legEndY)} color={sr.limbColor} strokeWidth={1.5} />
+              {/* Extra legs for specialty */}
+              {sr.legCount > 2 && (
+                <>
+                  <Line p1={vec(sr.x, sr.torsoBottom)} p2={vec(sr.x - 8, sr.legEndY)} color={sr.limbColor} strokeWidth={1.5} />
+                  <Line p1={vec(sr.x, sr.torsoBottom)} p2={vec(sr.x + 8, sr.legEndY)} color={sr.limbColor} strokeWidth={1.5} />
+                </>
+              )}
               {sr.obama.isMichelle && (
                 <RoundedRect x={sr.x - 18} y={sr.legEndY + 3} width={36} height={10} r={3} color="rgba(255,105,180,0.5)" />
               )}
@@ -402,6 +433,7 @@ export default function IslandCanvas() {
             <Text style={styles.modalName}>{selectedObama?.name}</Text>
             <Text style={styles.modalId}>#{String(selectedObama?.id || 0).padStart(4, '0')}</Text>
             {selectedObama?.isRare && <Text style={styles.modalRare}>✦ RARE ✦</Text>}
+            {selectedObama?.isSpecialty && <Text style={[styles.modalRare, { color: '#6b7b8d' }]}>★ SPECIALTY ★</Text>}
             {selectedObama?.isMichelle && <Text style={[styles.modalRare, { color: '#ff69b4' }]}>✦ MICHELLE ✦</Text>}
 
             <TextInput

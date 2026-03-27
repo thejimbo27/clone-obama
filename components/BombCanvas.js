@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useObamas } from '../context/ObamaContext';
 import {
   Canvas, Rect, RoundedRect, Circle, Line, Group,
   LinearGradient, vec,
@@ -27,8 +28,8 @@ let missileIdCounter = 0;
 
 export default function BombCanvas() {
   const router = useRouter();
+  const { missilesLaunched, addMissiles } = useObamas();
   const [frame, setFrame] = useState(0);
-  const [totalLaunched, setTotalLaunched] = useState(0);
   const missiles = useRef([]);
   const explosions = useRef([]);
   const animRef = useRef(null);
@@ -101,7 +102,7 @@ export default function BombCanvas() {
         exploded: false,
       });
     }
-    setTotalLaunched((n) => n + count);
+    addMissiles(count);
   }, []);
 
   // Build render data from refs
@@ -117,7 +118,7 @@ export default function BombCanvas() {
         </Pressable>
         <Text style={styles.headerTitle}>BOMB IRAN</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countNum}>{totalLaunched}</Text>
+          <Text style={styles.countNum}>{missilesLaunched}</Text>
         </View>
       </View>
 
@@ -266,7 +267,7 @@ export default function BombCanvas() {
             <Text style={styles.launchLabel}>LAUNCH</Text>
           </Pressable>
         </Animated.View>
-        <Text style={styles.launchSub}>{totalLaunched} MISSILES DEPLOYED</Text>
+        <Text style={styles.launchSub}>{missilesLaunched} MISSILES DEPLOYED</Text>
       </View>
 
       <Text style={styles.footer}>CLASSIFIED · STRATEGIC COMMAND</Text>

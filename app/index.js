@@ -108,7 +108,7 @@ function NavCard({ title, subtitle, icon, onPress, color = '#007aff' }) {
 
 export default function HQ() {
   const router = useRouter();
-  const { obamas, totalCloned, hqObama } = useObamas();
+  const { obamas, totalCloned, hqObama, score, stats } = useObamas();
 
   const streams = Array.from({ length: 12 }, (_, i) => (
     <DataStream key={i} left={`${8 + i * 8}%`} />
@@ -140,6 +140,7 @@ export default function HQ() {
           <NavCard title="ISLAND" subtitle="Obama habitat" icon="◎" color="#34c759" onPress={() => router.push('/island')} />
           <NavCard title="BOMB IRAN" subtitle="Launch strike" icon="◆" color="#007aff" onPress={() => router.push('/bomb')} />
           <NavCard title="BROWSER" subtitle="Web access" icon="◈" color="#af52de" onPress={() => router.push('/browser')} />
+          <NavCard title="LEADERBOARD" subtitle={`Score: ${score.toLocaleString()}`} icon="◇" color="#ff9500" onPress={() => router.push('/leaderboard')} />
         </View>
 
         {/* Workstation */}
@@ -168,9 +169,12 @@ export default function HQ() {
           <Text style={styles.consoleLine}>{'>'} SYS.STATUS ............ <Text style={{ color: '#34c759' }}>ONLINE</Text></Text>
           <Text style={styles.consoleLine}>{'>'} CLONES.ACTIVE ......... {obamas.length}</Text>
           <Text style={styles.consoleLine}>{'>'} CLONES.TOTAL .......... {totalCloned}</Text>
+          <Text style={styles.consoleLine}>{'>'} SPECIALTIES ........... {stats.specialties}</Text>
+          <Text style={styles.consoleLine}>{'>'} RARES ................. {stats.rares}</Text>
+          <Text style={styles.consoleLine}>{'>'} MISSILES.LAUNCHED ..... {stats.missiles}</Text>
+          <Text style={styles.consoleLine}>{'>'} SCORE ................. <Text style={{ color: '#ff9500' }}>{score.toLocaleString()}</Text></Text>
           <Text style={styles.consoleLine}>{'>'} OPERATOR .............. {hqObama?.name || 'NONE'}</Text>
           <Text style={styles.consoleLine}>{'>'} CLEARANCE ............. <Text style={{ color: '#007aff' }}>LEVEL 44</Text></Text>
-          <Text style={styles.consoleLine}>{'>'} FACILITY .............. OBAMA HQ</Text>
           <Text style={[styles.consoleLine, { color: '#007aff', marginTop: 8 }]}>{'>'} READY FOR INPUT_</Text>
         </View>
 

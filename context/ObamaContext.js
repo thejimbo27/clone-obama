@@ -1,12 +1,29 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { calculateScore } from '../services/leaderboard';
+import config from '../config';
 
 const NAMES = ['Barack', 'Barry', 'B-Rock', 'Baz', 'Obi', 'Baracko', 'Bam', 'Rock', 'B.O.', 'Obeezy'];
-const HATS = ['🎩', '👑', '🥳', '🤠'];
-const DEFORMITIES = ['huge_head', 'tiny_head', 'sideways'];
-const COLORS = ['golden', 'ghost'];
+
+// ─── Rare traits (1% chance) ─────────────────────────
+const RARE_HATS = ['🎩', '👑', '🥳', '🤠'];
+const RARE_DEFORMITIES = ['huge_head', 'tiny_head', 'sideways'];
+const RARE_COLORS = ['golden', 'ghost'];
+
+// ─── Specialty traits (8% chance) ────────────────────
+const SPEC_HATS = ['🪖', '🎓', '🧢', '⛑️', '🎀', '🪿', '🐸', '🦅'];
+const SPEC_DEFORMITIES = [
+  'long_neck', 'no_arms', 'extra_legs', 'thicc',
+  'squished', 'stretched', 'backwards', 'wobble',
+  'big_feet', 'noodle_arms',
+];
+const SPEC_COLORS = ['neon_green', 'blue_tint', 'red_tint', 'purple', 'sepia', 'inverted'];
 
 function randomName() {
   return NAMES[Math.floor(Math.random() * NAMES.length)];
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 let nextId = 2;
@@ -14,50 +31,62 @@ let nextId = 2;
 function generateObama() {
   const id = nextId++;
   const roll = Math.random();
-  const isMichelle = roll < 0.001;
-  const isRare = !isMichelle && roll < 0.011;
 
-  let rareTrait = null;
-  let rareType = null;
-
-  if (isRare) {
-    const typeRoll = Math.random();
-    if (typeRoll < 0.33) {
-      rareType = 'hat';
-      rareTrait = HATS[Math.floor(Math.random() * HATS.length)];
-    } else if (typeRoll < 0.66) {
-      rareType = 'deformity';
-      rareTrait = DEFORMITIES[Math.floor(Math.random() * DEFORMITIES.length)];
-    } else {
-      rareType = 'color';
-      rareTrait = COLORS[Math.floor(Math.random() * COLORS.length)];
-    }
+  // Michelle: 0.1%
+  if (roll < 0.001) {
+    return { id, name: 'Michelle', isMichelle: true, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
   }
 
-  return {
-    id,
-    name: isMichelle ? 'Michelle' : randomName(),
-    isMichelle,
-    isRare,
-    rareType,
-    rareTrait,
-  };
+  // Rare: 1%
+  if (roll < 0.011) {
+    const typeRoll = Math.random();
+    let rareType, rareTrait;
+    if (typeRoll < 0.33) { rareType = 'hat'; rareTrait = pick(RARE_HATS); }
+    else if (typeRoll < 0.66) { rareType = 'deformity'; rareTrait = pick(RARE_DEFORMITIES); }
+    else { rareType = 'color'; rareTrait = pick(RARE_COLORS); }
+    return { id, name: randomName(), isMichelle: false, isRare: true, isSpecialty: false, rareType, rareTrait };
+  }
+
+  // Specialty: 8%
+  if (roll < 0.091) {
+    const typeRoll = Math.random();
+    let rareType, rareTrait;
+    if (typeRoll < 0.33) { rareType = 'hat'; rareTrait = pick(SPEC_HATS); }
+    else if (typeRoll < 0.66) { rareType = 'deformity'; rareTrait = pick(SPEC_DEFORMITIES); }
+    else { rareType = 'color'; rareTrait = pick(SPEC_COLORS); }
+    return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: true, rareType, rareTrait };
+  }
+
+  // Normal
+  return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
 }
 
 const ObamaContext = createContext(null);
 
 export function ObamaProvider({ children }) {
   const [obamas, setObamas] = useState([
-    { id: 1, name: 'Barack', isMichelle: false, isRare: false, rareType: null, rareTrait: null },
+    { id: 1, name: 'Barack', isMichelle: false, isRare: false, isSpecialty: false, rareType: null, rareTrait: null },
   ]);
   const [totalCloned, setTotalCloned] = useState(1);
   const [hqObamaId, setHqObamaId] = useState(1);
+  const [missilesLaunched, setMissilesLaunched] = useState(0);
+  const [raresObtained, setRaresObtained] = useState(0);
+  const [specialtiesObtained, setSpecialtiesObtained] = useState(0);
+  const [michellesObtained, setMichellesObtained] = useState(0);
+  const [playerName, setPlayerName] = useState(config.PLAYER_NAME_DEFAULT);
 
   const addObama = useCallback(() => {
     const newObama = generateObama();
     setObamas((prev) => [...prev, newObama]);
     setTotalCloned((prev) => prev + 1);
+    if (newObama.isMichelle) setMichellesObtained((n) => n + 1);
+    else if (newObama.isRare) setRaresObtained((n) => n + 1);
+    else if (newObama.isSpecialty) setSpecialtiesObtained((n) => n + 1);
     return newObama;
+  }, []);
+
+  const addMissiles = useCallback((count) => {
+    setMissilesLaunched((n) => n + count);
   }, []);
 
   const removeObama = useCallback(
@@ -73,31 +102,34 @@ export function ObamaProvider({ children }) {
     [hqObamaId]
   );
 
-  const removeAllObamas = useCallback(() => {
-    setObamas([]);
-  }, []);
+  const removeAllObamas = useCallback(() => { setObamas([]); }, []);
 
   const renameObama = useCallback((id, name) => {
     setObamas((prev) => prev.map((o) => (o.id === id ? { ...o, name } : o)));
   }, []);
 
-  const setHqOperator = useCallback((id) => {
-    setHqObamaId(id);
-  }, []);
+  const setHqOperator = useCallback((id) => { setHqObamaId(id); }, []);
 
   const hqObama = obamas.find((o) => o.id === hqObamaId) || obamas[0] || null;
+
+  const stats = useMemo(() => ({
+    clones: totalCloned,
+    rares: raresObtained,
+    specialties: specialtiesObtained,
+    michelles: michellesObtained,
+    missiles: missilesLaunched,
+  }), [totalCloned, raresObtained, specialtiesObtained, michellesObtained, missilesLaunched]);
+
+  const score = useMemo(() => calculateScore(stats), [stats]);
 
   return (
     <ObamaContext.Provider
       value={{
-        obamas,
-        totalCloned,
-        hqObama,
-        addObama,
-        removeObama,
-        removeAllObamas,
-        renameObama,
-        setHqOperator,
+        obamas, totalCloned, hqObama,
+        missilesLaunched, raresObtained, specialtiesObtained, michellesObtained,
+        stats, score, playerName,
+        addObama, addMissiles, removeObama, removeAllObamas,
+        renameObama, setHqOperator, setPlayerName,
       }}
     >
       {children}
