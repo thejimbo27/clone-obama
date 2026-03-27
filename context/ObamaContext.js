@@ -4,12 +4,17 @@ import config from '../config';
 
 const NAMES = ['Barack', 'Barry', 'B-Rock', 'Baz', 'Obi', 'Baracko', 'Bam', 'Rock', 'B.O.', 'Obeezy'];
 
-// ─── Rare traits (1% chance) ─────────────────────────
+// ─── Rare traits (1%) ────────────────────────────────
 const RARE_HATS = ['🎩', '👑', '🥳', '🤠'];
 const RARE_DEFORMITIES = ['huge_head', 'tiny_head', 'sideways'];
 const RARE_COLORS = ['golden', 'ghost'];
 
-// ─── Specialty traits (8% chance) ────────────────────
+// All 9 rare traits needed for Biden unlock
+const ALL_RARE_TRAITS = [
+  ...RARE_HATS, ...RARE_DEFORMITIES, ...RARE_COLORS,
+];
+
+// ─── Specialty traits (8%) ───────────────────────────
 const SPEC_HATS = ['🪖', '🎓', '🧢', '⛑️', '🎀', '🪿', '🐸', '🦅'];
 const SPEC_DEFORMITIES = [
   'long_neck', 'no_arms', 'extra_legs', 'thicc',
@@ -18,13 +23,8 @@ const SPEC_DEFORMITIES = [
 ];
 const SPEC_COLORS = ['neon_green', 'blue_tint', 'red_tint', 'purple', 'sepia', 'inverted'];
 
-function randomName() {
-  return NAMES[Math.floor(Math.random() * NAMES.length)];
-}
-
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randomName() { return pick(NAMES); }
 
 let nextId = 2;
 
@@ -32,32 +32,26 @@ function generateObama() {
   const id = nextId++;
   const roll = Math.random();
 
-  // Michelle: 0.1%
   if (roll < 0.001) {
     return { id, name: 'Michelle', isMichelle: true, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
   }
-
-  // Rare: 1%
   if (roll < 0.011) {
-    const typeRoll = Math.random();
+    const t = Math.random();
     let rareType, rareTrait;
-    if (typeRoll < 0.33) { rareType = 'hat'; rareTrait = pick(RARE_HATS); }
-    else if (typeRoll < 0.66) { rareType = 'deformity'; rareTrait = pick(RARE_DEFORMITIES); }
+    if (t < 0.33) { rareType = 'hat'; rareTrait = pick(RARE_HATS); }
+    else if (t < 0.66) { rareType = 'deformity'; rareTrait = pick(RARE_DEFORMITIES); }
     else { rareType = 'color'; rareTrait = pick(RARE_COLORS); }
     return { id, name: randomName(), isMichelle: false, isRare: true, isSpecialty: false, rareType, rareTrait };
   }
-
-  // Specialty: 8%
   if (roll < 0.091) {
-    const typeRoll = Math.random();
+    const t = Math.random();
     let rareType, rareTrait;
-    if (typeRoll < 0.33) { rareType = 'hat'; rareTrait = pick(SPEC_HATS); }
-    else if (typeRoll < 0.66) { rareType = 'deformity'; rareTrait = pick(SPEC_DEFORMITIES); }
+    if (t < 0.33) { rareType = 'hat'; rareTrait = pick(SPEC_HATS); }
+    else if (t < 0.66) { rareType = 'deformity'; rareTrait = pick(SPEC_DEFORMITIES); }
     else { rareType = 'color'; rareTrait = pick(SPEC_COLORS); }
     return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: true, rareType, rareTrait };
   }
 
-  // Normal
   return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
 }
 
@@ -75,12 +69,21 @@ export function ObamaProvider({ children }) {
   const [michellesObtained, setMichellesObtained] = useState(0);
   const [playerName, setPlayerName] = useState(config.PLAYER_NAME_DEFAULT);
 
+  // Track which rare traits have been collected (for Biden unlock)
+  const [collectedRareTraits, setCollectedRareTraits] = useState(new Set());
+  const [bidenPopupShown, setBidenPopupShown] = useState(false);
+
   const addObama = useCallback(() => {
     const newObama = generateObama();
     setObamas((prev) => [...prev, newObama]);
     setTotalCloned((prev) => prev + 1);
     if (newObama.isMichelle) setMichellesObtained((n) => n + 1);
-    else if (newObama.isRare) setRaresObtained((n) => n + 1);
+    else if (newObama.isRare) {
+      setRaresObtained((n) => n + 1);
+      if (newObama.rareTrait) {
+        setCollectedRareTraits((prev) => new Set([...prev, newObama.rareTrait]));
+      }
+    }
     else if (newObama.isSpecialty) setSpecialtiesObtained((n) => n + 1);
     return newObama;
   }, []);
@@ -112,6 +115,10 @@ export function ObamaProvider({ children }) {
 
   const hqObama = obamas.find((o) => o.id === hqObamaId) || obamas[0] || null;
 
+  // Biden unlock: Michelle is HQ + all 9 rare traits collected
+  const allRaresCollected = ALL_RARE_TRAITS.every((t) => collectedRareTraits.has(t));
+  const joeBidenUnlocked = !!(hqObama?.isMichelle && allRaresCollected);
+
   const stats = useMemo(() => ({
     clones: totalCloned,
     rares: raresObtained,
@@ -128,8 +135,11 @@ export function ObamaProvider({ children }) {
         obamas, totalCloned, hqObama,
         missilesLaunched, raresObtained, specialtiesObtained, michellesObtained,
         stats, score, playerName,
+        collectedRareTraits, allRaresCollected, joeBidenUnlocked,
+        bidenPopupShown, setBidenPopupShown,
         addObama, addMissiles, removeObama, removeAllObamas,
         renameObama, setHqOperator, setPlayerName,
+        ALL_RARE_TRAITS,
       }}
     >
       {children}

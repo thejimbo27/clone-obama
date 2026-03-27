@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { useObamas } from '../context/ObamaContext';
 import {
   Canvas, Rect, RoundedRect, Circle, Line, Group,
-  LinearGradient, vec,
+  LinearGradient, vec, Image as SkiaImage, useImage,
 } from '@shopify/react-native-skia';
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -28,12 +28,13 @@ let missileIdCounter = 0;
 
 export default function BombCanvas() {
   const router = useRouter();
-  const { missilesLaunched, addMissiles } = useObamas();
+  const { missilesLaunched, addMissiles, joeBidenUnlocked } = useObamas();
   const [frame, setFrame] = useState(0);
   const missiles = useRef([]);
   const explosions = useRef([]);
   const animRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const bidenHead = useImage(require('../assets/joe-biden.png'));
 
   // Button pulse
   useEffect(() => {
@@ -211,6 +212,27 @@ export default function BombCanvas() {
             {/* Status light */}
             <Circle cx={LAUNCH_X} cy={LAUNCH_Y + 5} r={3} color="#ff3b30" />
           </Group>
+
+          {/* Biden next to launcher */}
+          {joeBidenUnlocked && (
+            <Group>
+              {bidenHead && (
+                <SkiaImage
+                  image={bidenHead}
+                  x={LAUNCH_X + 28}
+                  y={LAUNCH_Y - 20}
+                  width={20}
+                  height={20}
+                  fit="cover"
+                />
+              )}
+              <Line p1={vec(LAUNCH_X + 38, LAUNCH_Y)} p2={vec(LAUNCH_X + 38, LAUNCH_Y + 18)} color="#ffffff" strokeWidth={2} />
+              <Line p1={vec(LAUNCH_X + 38, LAUNCH_Y + 4)} p2={vec(LAUNCH_X + 28, LAUNCH_Y + 14)} color="#ffffff" strokeWidth={1.5} />
+              <Line p1={vec(LAUNCH_X + 38, LAUNCH_Y + 4)} p2={vec(LAUNCH_X + 48, LAUNCH_Y + 14)} color="#ffffff" strokeWidth={1.5} />
+              <Line p1={vec(LAUNCH_X + 38, LAUNCH_Y + 18)} p2={vec(LAUNCH_X + 33, LAUNCH_Y + 30)} color="#ffffff" strokeWidth={1.5} />
+              <Line p1={vec(LAUNCH_X + 38, LAUNCH_Y + 18)} p2={vec(LAUNCH_X + 43, LAUNCH_Y + 30)} color="#ffffff" strokeWidth={1.5} />
+            </Group>
+          )}
 
           {/* Missile trails */}
           {missileRenders.map((m) =>

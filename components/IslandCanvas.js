@@ -49,16 +49,28 @@ const SPEED = 0.6;
 
 export default function IslandCanvas() {
   const router = useRouter();
-  const { obamas, removeObama, removeAllObamas, renameObama, setHqOperator } = useObamas();
+  const { obamas, removeObama, removeAllObamas, renameObama, setHqOperator, joeBidenUnlocked, bidenPopupShown, setBidenPopupShown } = useObamas();
   const [frame, setFrame] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [renameText, setRenameText] = useState('');
+  const [showBidenPopup, setShowBidenPopup] = useState(false);
   const spriteData = useRef({});
   const animRef = useRef(null);
+  const prevBidenRef = useRef(false);
 
   // Skia hooks — safe to call because this module only evaluates after CanvasKit is loaded
   const obamaHead = useImage(require('../assets/obama.png'));
   const michelleHead = useImage(require('../assets/michelle.png'));
+  const bidenHead = useImage(require('../assets/joe-biden.png'));
+
+  // Biden arrival popup
+  useEffect(() => {
+    if (joeBidenUnlocked && !prevBidenRef.current && !bidenPopupShown) {
+      setShowBidenPopup(true);
+      setBidenPopupShown(true);
+    }
+    prevBidenRef.current = joeBidenUnlocked;
+  }, [joeBidenUnlocked, bidenPopupShown]);
 
   // Play ere.mp3 on mount
   useEffect(() => {
@@ -405,6 +417,48 @@ export default function IslandCanvas() {
             </Group>
           ))}
 
+          {/* Joe Biden on a boat */}
+          {joeBidenUnlocked && (
+            <Group>
+              {/* Boat hull */}
+              <RoundedRect
+                x={CANVAS_W * 0.05}
+                y={CANVAS_H * 0.78}
+                width={60}
+                height={18}
+                r={8}
+                color="#8B4513"
+              />
+              {/* Boat deck */}
+              <Rect
+                x={CANVAS_W * 0.05 + 5}
+                y={CANVAS_H * 0.78 - 2}
+                width={50}
+                height={4}
+                color="#A0522D"
+              />
+              {/* Biden head */}
+              {bidenHead && (
+                <SkiaImage
+                  image={bidenHead}
+                  x={CANVAS_W * 0.05 + 15}
+                  y={CANVAS_H * 0.78 - 30}
+                  width={22}
+                  height={22}
+                  fit="cover"
+                />
+              )}
+              {/* Biden stick body */}
+              <Line p1={vec(CANVAS_W * 0.05 + 26, CANVAS_H * 0.78 - 8)} p2={vec(CANVAS_W * 0.05 + 26, CANVAS_H * 0.78)} color="#ffffff" strokeWidth={2} />
+              {/* Arms */}
+              <Line p1={vec(CANVAS_W * 0.05 + 26, CANVAS_H * 0.78 - 4)} p2={vec(CANVAS_W * 0.05 + 16, CANVAS_H * 0.78 + 2)} color="#ffffff" strokeWidth={1.5} />
+              <Line p1={vec(CANVAS_W * 0.05 + 26, CANVAS_H * 0.78 - 4)} p2={vec(CANVAS_W * 0.05 + 36, CANVAS_H * 0.78 + 2)} color="#ffffff" strokeWidth={1.5} />
+              {/* Water wake */}
+              <Circle cx={CANVAS_W * 0.05 + 65} cy={CANVAS_H * 0.79 + 8} r={5} color="rgba(255,255,255,0.1)" />
+              <Circle cx={CANVAS_W * 0.05 + 72} cy={CANVAS_H * 0.79 + 6} r={3} color="rgba(255,255,255,0.07)" />
+            </Group>
+          )}
+
           {/* Water ripples */}
           <Circle cx={CANVAS_W * 0.18} cy={CANVAS_H * 0.92} r={20} color="rgba(0,180,255,0.05)" />
           <Circle cx={CANVAS_W * 0.72} cy={CANVAS_H * 0.88} r={15} color="rgba(0,180,255,0.04)" />
@@ -425,6 +479,23 @@ export default function IslandCanvas() {
           <Text style={styles.emptySubtext}>Clone more Obamas at HQ</Text>
         </View>
       )}
+
+      {/* Biden Arrival Popup */}
+      <Modal visible={showBidenPopup} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { borderColor: 'rgba(0,122,255,0.2)' }]}>
+            <Text style={{ fontSize: 36, marginBottom: 8 }}>🇺🇸</Text>
+            <Text style={[styles.modalName, { color: '#007aff' }]}>JOE BIDEN</Text>
+            <Text style={styles.modalId}>HAS ARRIVED</Text>
+            <Text style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)', marginTop: 12, textAlign: 'center', lineHeight: 18, letterSpacing: 1 }}>
+              All rare Obamas collected.{'\n'}Michelle is operating HQ.{'\n'}Biden has docked at the island.
+            </Text>
+            <Pressable onPress={() => setShowBidenPopup(false)} style={[styles.modalBtn, { marginTop: 20, borderColor: 'rgba(0,122,255,0.2)' }]}>
+              <Text style={[styles.modalBtnText, { color: '#007aff' }]}>WELCOME, JOE</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       {/* Selection Modal */}
       <Modal visible={!!selectedObama} transparent animationType="fade">
