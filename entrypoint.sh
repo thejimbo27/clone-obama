@@ -1,23 +1,26 @@
 #!/bin/sh
 set -e
 
+cd /app
+
 # Seed DB if it doesn't exist
 if [ ! -f data/obama.db ]; then
   echo "Seeding database..."
   node db/seed.js
 fi
 
-# Start all services
+# Start admin panel
 echo "Starting admin panel..."
-cd admin && node server.js &
-cd ..
+node admin/server.js &
 
+# Start Expo dev server (--clear to avoid stale Metro cache)
 echo "Starting Expo dev server..."
-npx expo start --web --port 8082 --non-interactive &
+CI=1 npx expo start --web --port 8082 --clear &
 
 # Wait for Expo to be ready
 sleep 5
 
+# Start proxy
 echo "Starting proxy..."
 node proxy.js &
 
