@@ -71,6 +71,7 @@ await LoadSkiaWeb({
 - `totalCloned` — lifetime counter
 - `hqObama` — the Obama currently operating HQ
 - `missilesLaunched` — lifetime missile counter
+- `pagesVisited` — lifetime browser navigation counter
 - `raresObtained` / `syntheticsObtained` / `michellesObtained` — pull counters
 - `collectedRareTraits` — Set of unique rare traits collected (for Biden unlock)
 - `joeBidenUnlocked` — derived boolean (Michelle is HQ + all 9 rare traits)
@@ -89,7 +90,7 @@ The hub and command center are **one screen**. Light theme. Layout top-to-bottom
 2. **Stats** — active count | all-time count
 3. **Navigation cards** — five frosted glass buttons: CLONER (red), ISLAND (green), BOMB IRAN (blue), BROWSER (purple), LEADERBOARD (orange, shows current score). These sit **above** the Obama operator, as if they're part of his workstation.
 4. **Workstation** — Obama (head on stick body) at a glowing desk. Blue hologram rings pulse behind him. Binary data streams fall in the background.
-5. **Console readout** — monospace system status (SYS.STATUS, CLONES.ACTIVE/TOTAL, SPECIALTIES, RARES, MISSILES.LAUNCHED, SCORE, OPERATOR, CLEARANCE LEVEL 44)
+5. **Console readout** — monospace system status (SYS.STATUS, CLONES.ACTIVE/TOTAL, SYNTHETICS, RARES, MISSILES.LAUNCHED, SCORE, OPERATOR, CLEARANCE LEVEL 44)
 6. **Footer** — "CLASSIFIED · LEVEL 44"
 
 Background: `cloud.jpg` (ink cloud photo) with a light white overlay.
@@ -100,8 +101,8 @@ Background: `cloud.jpg` (ink cloud photo) with a light white overlay.
 - **Spammable.** Normal clones show an inline toast below the button that fades out — doesn't block input.
 - **Red flash** on press.
 - **Scrollable clone cards** — horizontal FlatList at the bottom showing all Obamas as mini stick-figure cards (newest first). Cards have colored borders: gold for rare, silver for synthetic, pink for Michelle.
-- **Synthetic/Rare/Michelle overlay** — blocking overlay with spring animation. Cannot be dismissed by tapping background. Shows: tag (★ SPECIALTY / ✦ RARE / ✦ MICHELLE), full stick figure with trait, name, ID, trait label. Two buttons: **SET AS HQ** (immediately sets as operator) and **ACKNOWLEDGE** (just dismisses).
-- Sound effects: `riff.mp3` for rare/Michelle, `synth.mp3` for synthetic.
+- **Synthetic/Rare/Michelle overlay** — blocking overlay with spring animation. Cannot be dismissed by tapping background. Shows: tag (★ SYNTHETIC / ✦ RARE / ✦ MICHELLE), full stick figure with trait, name, ID, trait label. Two buttons: **SET AS HQ** (immediately sets as operator) and **ACKNOWLEDGE** (just dismisses).
+- Sound effects: `riff.mp3` for Michelle, `synth.mp3` for rare and synthetic.
 - Score badge in header.
 
 ### Obama Island (`island.js` → `IslandCanvas.js` — Skia Canvas)
@@ -121,7 +122,7 @@ All Obamas live here. **Single Skia `<Canvas>`** with one game loop.
 
 **Features:**
 - `ere.mp3` plays on entering the island.
-- Tap an Obama to select → modal with rename, set as HQ operator, or release. Shows ✦ RARE / ★ SPECIALTY / ✦ MICHELLE tags.
+- Tap an Obama to select → modal with rename, set as HQ operator, or release. Shows ✦ RARE / ★ SYNTHETIC / ✦ MICHELLE tags.
 - **Ascend animation:** Released Obamas float upward and fade out, then are removed from state.
 - "RELEASE ALL TO THE PHYSICAL WORLD" button removes all Obamas (they all ascend simultaneously).
 - Obama counter badge at top.
@@ -157,7 +158,7 @@ A real working browser. Uses `react-native-webview` on native, `<iframe>` on web
 - Total score (large monospace number)
 - Score breakdown table showing each category with count × weight = points:
   - Clones × 2
-  - Specialties × 100
+  - Synthetics × 100
   - Rares × 500
   - Michelles × 5,000
   - Missiles × 1
@@ -224,15 +225,16 @@ Score = (clones × 2) + (pages × 5) + (synthetics × 100) + (rares × 500) + (m
 
 ```js
 {
-  DB_CONNECTION_STRING: null,  // null = module-level store
-                               // 'postgresql://...' = server-side DB
+  DB_CONNECTION_STRING: null,  // null = server-side JSON file
+                               // 'postgresql://...' = real DB
 
   SCORE_WEIGHTS: {
-    MISSILE:   1,
-    CLONE:     2,
-    SPECIALTY: 100,
-    RARE:      500,
-    MICHELLE:  5000,
+    MISSILE:    1,
+    CLONE:      2,
+    PAGE_VISIT: 5,
+    SYNTHETIC:  100,
+    RARE:       500,
+    MICHELLE:   5000,
   },
 
   LEADERBOARD_MAX_ENTRIES: 50,
@@ -250,11 +252,11 @@ All in `/assets/`:
 - `obama.png` — 151×200 RGBA, Obama head cutout
 - `michelle.png` — 314×314 RGBA, Michelle head cutout
 - `joe-biden.png` — 1000×1000 RGBA, Biden head cutout
-- `cloud.jpg` — 736×1000, ink cloud explosion (background for HQ and cloner)
+- `cloud.jpg` — voronoi mosaic with Arabic "Barack Obama" (background for HQ and cloner)
 - `island.jpeg` — 429×524, island reference
 - `ere.mp3` — "ere" sound for island entry
-- `riff.mp3` — guitar riff for rare/Michelle reveals
-- `synth.mp3` — soft synth for synthetic reveals
+- `riff.mp3` — guitar riff for Michelle reveals
+- `synth.mp3` — soft synth for rare and synthetic reveals
 
 ## VIBES
 
