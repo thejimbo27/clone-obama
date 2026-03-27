@@ -221,7 +221,7 @@ A real working browser. Uses `react-native-webview` on native, `<iframe>` on web
 
 **Rankings Table:** Medal emojis for top 3. Player's own row highlighted blue. Shows name + score.
 
-**Storage Info:** Shows current storage mode at bottom. Default is server-side JSON file (`data/leaderboard.json`) — persists across page reloads and server restarts. Set `DB_CONNECTION_STRING` in `config.js` to use a real database instead.
+**Storage Info:** Shows current storage mode at bottom. Leaderboard is persisted in SQLite (`data/obama.db`) — shared across all clients, survives restarts.
 
 ## FEATURES
 
@@ -257,10 +257,10 @@ Every browser page load (GO or link click) awards **5 pts**. Tracked as `pagesVi
 - One-time "JOE BIDEN HAS ARRIVED" popup with 🇺🇸
 
 ### Naming
-Each clone gets a random first name: Barack, Barry, B-Rock, Baz, Obi, Baracko, Bam, Rock, B.O., Obeezy. Can be renamed from the island tap modal.
+Each clone gets a random first name: Barack, Barry, B-Rock, Baz, Obi, Baracko, Bam, Rock, B.O., Obeezy. Templates can set a `name_override` to force a specific name for clones of that type. Can be renamed from the island tap modal.
 
 ### HQ Operator
-Set from the island tap modal or directly from the clone reveal overlay (SET AS HQ button). The operator appears at the HQ workstation desk.
+Set from the island tap modal or directly from the clone reveal overlay (SET AS HQ button). The operator appears at the HQ workstation desk wearing a suit (dark jacket with lapels and red tie).
 
 ### Release to Physical World
 Individual or mass release. Obamas ascend upward and fade out. They're gone.
@@ -280,9 +280,6 @@ Score = (clones × 2) + (pages × 5) + (synthetics × 100) + (rares × 500) + (m
 
 ```js
 {
-  DB_CONNECTION_STRING: null,  // null = server-side JSON file
-                               // 'postgresql://...' = real DB
-
   SCORE_WEIGHTS: {
     MISSILE:    1,
     CLONE:      2,
@@ -297,9 +294,34 @@ Score = (clones × 2) + (pages × 5) + (synthetics × 100) + (rares × 500) + (m
 }
 ```
 
-**Leaderboard Storage Modes:**
-1. **Default:** Server-side JSON file (`data/leaderboard.json`). App runs with `"output": "server"` in `app.json`. Data persists across page reloads and server restarts. The service always routes through `/api/leaderboard`, falling back to in-memory if the server is unreachable (native/offline).
-2. **Real DB:** Set `DB_CONNECTION_STRING` in `config.js` and implement the adapter in `app/api/leaderboard+api.js`. Stub adapters available for PostgreSQL, MySQL, MongoDB.
+**Persistence:** All data lives in SQLite at `data/obama.db`. The service always routes through `/api/leaderboard`, falling back to in-memory if the server is unreachable (native/offline). Templates are polled every 3 seconds from `/api/templates` so admin changes are reflected live.
+
+## DEPLOYMENT
+
+### Local
+```
+npm run seed          # seed DB with default templates
+npx expo start --web  # main app (port 8081)
+npm run admin         # admin panel (port 3000)
+npm run proxy         # reverse proxy (port 4000) — /admin/* → 3000, /* → 8082
+```
+
+### Container (Podman)
+```
+podman build -t obama-hq -f Containerfile .
+podman run --rm -p 4000:4000 -v obama-data:/app/data obama-hq
+```
+
+Single container runs all three services. Named volume `obama-data` persists the SQLite DB and uploads. Override admin creds with `-e ADMIN_USER=x -e ADMIN_PASS=y`.
+
+### Tunneling (ngrok)
+```
+ngrok http 4000
+```
+Single domain: `/` for the app, `/admin/` for the admin panel.
+
+### Native module loading
+API routes use `createRequire(__filename)` to load `better-sqlite3` at runtime, bypassing Metro's bundler which can't handle native C++ addons.
 
 ## ASSETS
 
