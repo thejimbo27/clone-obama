@@ -46,10 +46,14 @@ export function GET(request) {
     const url = new URL(request.url, 'http://localhost');
     const tier = url.searchParams.get('tier');
     if (tier) {
+      const VALID_TIERS = ['normal', 'synthetic', 'rare', 'michelle'];
+      if (!VALID_TIERS.includes(tier)) {
+        return Response.json({ error: 'Invalid tier' }, { status: 400 });
+      }
       return Response.json({ templates: getTemplatesByTier(tier) });
     }
     return Response.json({ templates: getAllTemplates() });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 }

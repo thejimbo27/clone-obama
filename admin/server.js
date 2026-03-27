@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { join, dirname, extname } from 'path';
 import { fileURLToPath, URL } from 'url';
 import { existsSync, unlinkSync, mkdirSync } from 'fs';
+import { timingSafeEqual } from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -85,17 +86,46 @@ app.set('view engine', 'ejs');
 app.set('views', join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/uploads', (req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'none'; script-src 'none'");
+  next();
+}, express.static(UPLOAD_DIR));
 
-// ─── Basic Auth ──────────────────────────────────────
+// ─── Security headers ────────────────────────────────
 app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// ─── Basic Auth (timing-safe) ────────────────────────
+const authFailDelay = new Map(); // IP → timestamp of last fail
+app.use((req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress;
+  const lastFail = authFailDelay.get(ip) || 0;
+  if (Date.now() - lastFail < 2000) {
+    res.set('Retry-After', '2');
+    return res.status(429).send('Too many attempts');
+  }
+
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Basic ')) {
     res.set('WWW-Authenticate', 'Basic realm="Obama Admin"');
     return res.status(401).send('Authentication required');
   }
-  const [user, pass] = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
-  if (user !== ADMIN_USER || pass !== ADMIN_PASS) {
+  const decoded = Buffer.from(auth.split(' ')[1], 'base64').toString();
+  const sep = decoded.indexOf(':');
+  const user = decoded.slice(0, sep);
+  const pass = decoded.slice(sep + 1);
+
+  const expected = `${ADMIN_USER}:${ADMIN_PASS}`;
+  const actual = `${user}:${pass}`;
+  const a = Buffer.from(actual.padEnd(expected.length, '\0'));
+  const b = Buffer.from(expected.padEnd(actual.length, '\0'));
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    authFailDelay.set(ip, Date.now());
     res.set('WWW-Authenticate', 'Basic realm="Obama Admin"');
     return res.status(401).send('Invalid credentials');
   }
@@ -113,7 +143,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+    const allowed = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
     const ext = extname(file.originalname).toLowerCase();
     cb(null, allowed.includes(ext));
   },
@@ -295,5 +325,5 @@ app.post('/accessories/:id/delete', (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n  OBAMA ADMIN PANEL`);
   console.log(`  http://localhost:${PORT}`);
-  console.log(`  Auth: ${ADMIN_USER} / ${ADMIN_PASS}\n`);
+  console.log(`  Auth: set via ADMIN_USER / ADMIN_PASS env vars\n`);
 });

@@ -61,7 +61,7 @@ export function GET() {
   try {
     return Response.json({ entries: getAll() });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -71,9 +71,18 @@ export async function POST(request) {
     if (!body.name || typeof body.score !== 'number') {
       return Response.json({ error: 'name and score required' }, { status: 400 });
     }
-    upsert(body);
+    // Input validation
+    const name = String(body.name).slice(0, 50).trim();
+    if (!name) return Response.json({ error: 'name required' }, { status: 400 });
+    const score = Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, Math.floor(body.score)));
+    const stats = body.stats && typeof body.stats === 'object' ? body.stats : {};
+    const statsStr = JSON.stringify(stats);
+    if (statsStr.length > 10000) {
+      return Response.json({ error: 'stats too large' }, { status: 400 });
+    }
+    upsert({ name, score, stats });
     return Response.json({ ok: true, entries: getAll() });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 }

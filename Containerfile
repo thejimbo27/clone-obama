@@ -20,17 +20,18 @@ RUN cd admin && npm ci
 # Copy source
 COPY . .
 
-# Create data dirs
-RUN mkdir -p data/uploads
+# Create non-root user and data dirs
+RUN useradd -m -s /bin/sh appuser && \
+    mkdir -p data/uploads && \
+    chown -R appuser:appuser /app
 
 # Expose proxy port
 EXPOSE 4000
 
-# Environment defaults
+# Environment defaults (creds must be set at runtime via -e flags)
 ENV EXPO_PORT=8082 \
     ADMIN_PORT=3000 \
-    PROXY_PORT=4000 \
-    ADMIN_USER=admin \
-    ADMIN_PASS=obama44
+    PROXY_PORT=4000
 
+USER appuser
 ENTRYPOINT ["./entrypoint.sh"]

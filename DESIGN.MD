@@ -309,19 +309,29 @@ npm run proxy         # reverse proxy (port 4000) — /admin/* → 3000, /* → 
 ### Container (Podman)
 ```
 podman build -t obama-hq -f Containerfile .
-podman run --rm -p 4000:4000 -v obama-data:/app/data obama-hq
+podman run --rm -p 4000:4000 -v obama-data:/app/data \
+  -e ADMIN_USER=admin -e ADMIN_PASS=<your-password> obama-hq
 ```
 
-Single container runs all three services. Named volume `obama-data` persists the SQLite DB and uploads. Override admin creds with `-e ADMIN_USER=x -e ADMIN_PASS=y`.
+Single container runs all three services as non-root `appuser`. Named volume `obama-data` persists the SQLite DB and uploads. Admin creds **must** be set via `-e` flags (not baked into the image).
 
-### Tunneling (ngrok)
+### Tunneling (cloudflared)
 ```
-ngrok http 4000
+npm run tunnel
+# or: cloudflared tunnel --url http://localhost:4000 --edge-ip-version 4
 ```
-Single domain: `/` for the app, `/admin/` for the admin panel.
+Creates a quick tunnel on `trycloudflare.com`. Single domain: `/` for the app, `/admin/` for the admin panel. No account required. Force IPv4 (`--edge-ip-version 4`) to avoid ISP/content-filter issues on IPv6.
 
 ### Native module loading
 API routes use `createRequire(__filename)` to load `better-sqlite3` at runtime, bypassing Metro's bundler which can't handle native C++ addons.
+
+### Security hardening
+The app is designed to be publicly exposed via cloudflared tunnel:
+- **Container**: runs as non-root `appuser`, no secrets baked into image layers
+- **Proxy**: strips hop-by-hop headers, enforces 10MB body limit, injects `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` on every response
+- **Admin auth**: timing-safe comparison (`crypto.timingSafeEqual`), per-IP rate limiting (2s cooldown on failed attempts), credentials passed via env vars only
+- **Uploads**: only UUID-named image files served (regex whitelist), `realpathSync` prevents symlink escape, SVG blocked (XSS vector), `nosniff` + restrictive CSP on static files
+- **API routes**: input validation on leaderboard (name 50 chars, score bounded, stats 10KB), tier parameter whitelisted, error messages never leak internals
 
 ## ASSETS
 

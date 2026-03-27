@@ -26,6 +26,6 @@ export function GET() {
     const accessories = db.prepare('SELECT * FROM accessories ORDER BY name').all();
     return Response.json({ accessories });
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 }
