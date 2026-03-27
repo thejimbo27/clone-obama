@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 
 function SkiaLoader({ children }) {
   const [ready, setReady] = useState(Platform.OS !== 'web');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -14,10 +15,16 @@ function SkiaLoader({ children }) {
           const { LoadSkiaWeb } = await import(
             '@shopify/react-native-skia/lib/module/web'
           );
-          await LoadSkiaWeb();
+          await LoadSkiaWeb({
+            locateFile: (file) =>
+              `https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.40.0/bin/full/${file}`,
+          });
+          console.log('CanvasKit loaded:', !!global.CanvasKit);
           setReady(true);
         } catch (e) {
-          console.warn('Skia web load failed, continuing without:', e);
+          console.error('Skia web load failed:', e);
+          setError(e);
+          // Still allow app to render — island will show fallback
           setReady(true);
         }
       })();
