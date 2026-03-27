@@ -8,17 +8,24 @@ import { useObamas } from '../context/ObamaContext';
 const MONO = Platform.OS === 'web' ? 'monospace' : 'Courier';
 const DEFAULT_URL = 'https://en.wikipedia.org/wiki/Barack_Obama';
 
-function WebViewNative({ uri }) {
+function WebViewNative({ uri, onNavigate }) {
   try {
     const { WebView } = require('react-native-webview');
-    return <WebView source={{ uri }} style={{ flex: 1 }} />;
+    return (
+      <WebView
+        source={{ uri }}
+        style={{ flex: 1 }}
+        onNavigationStateChange={(state) => { if (state.loading) onNavigate(); }}
+      />
+    );
   } catch (e) { return null; }
 }
 
-function WebViewWeb({ uri }) {
+function WebViewWeb({ uri, onNavigate }) {
   return (
     <iframe
       src={uri}
+      onLoad={onNavigate}
       style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#fff' }}
       sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
     />
@@ -36,8 +43,7 @@ export default function BrowserScreen() {
     if (!u) return;
     if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
     setUrl(u);
-    addPageVisit();
-  }, [inputUrl, addPageVisit]);
+  }, [inputUrl]);
 
   return (
     <View style={styles.container}>
@@ -67,7 +73,9 @@ export default function BrowserScreen() {
       </View>
 
       <View style={styles.webview}>
-        {Platform.OS === 'web' ? <WebViewWeb uri={url} /> : <WebViewNative uri={url} />}
+        {Platform.OS === 'web'
+          ? <WebViewWeb uri={url} onNavigate={addPageVisit} />
+          : <WebViewNative uri={url} onNavigate={addPageVisit} />}
       </View>
 
       <Text style={styles.footer}>OBAMA WEB ACCESS · CLASSIFIED</Text>

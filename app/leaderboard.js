@@ -92,7 +92,7 @@ export default function LeaderboardScreen() {
           {/* Breakdown */}
           <View style={styles.breakdown}>
             <BreakdownRow label="Clones" count={stats.clones} weight={W.CLONE} pts={stats.clones * W.CLONE} />
-            <BreakdownRow label="Specialties" count={stats.specialties} weight={W.SPECIALTY} pts={stats.specialties * W.SPECIALTY} color="#6b7b8d" />
+            <BreakdownRow label="Synthetics" count={stats.synthetics} weight={W.SYNTHETIC} pts={stats.synthetics * W.SYNTHETIC} color="#6b7b8d" />
             <BreakdownRow label="Rares" count={stats.rares} weight={W.RARE} pts={stats.rares * W.RARE} color="#b8860b" />
             <BreakdownRow label="Michelles" count={stats.michelles} weight={W.MICHELLE} pts={stats.michelles * W.MICHELLE} color="#ff69b4" />
             <BreakdownRow label="Missiles" count={stats.missiles} weight={W.MISSILE} pts={stats.missiles * W.MISSILE} color="#007aff" />

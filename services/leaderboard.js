@@ -86,7 +86,7 @@ export function calculateScore(stats) {
     (stats.missiles || 0) * w.MISSILE +
     (stats.clones || 0) * w.CLONE +
     (stats.pages || 0) * w.PAGE_VISIT +
-    (stats.specialties || 0) * w.SPECIALTY +
+    (stats.synthetics || 0) * w.SYNTHETIC +
     (stats.rares || 0) * w.RARE +
     (stats.michelles || 0) * w.MICHELLE
   );

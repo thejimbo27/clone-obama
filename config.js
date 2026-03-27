@@ -27,7 +27,7 @@ const config = {
     MISSILE:    1,     // per missile launched
     CLONE:      2,     // per obama cloned (any type)
     PAGE_VISIT: 5,     // per browser navigation
-    SPECIALTY:  100,   // per specialty obama obtained
+    SYNTHETIC:  100,   // per synthetic obama obtained
     RARE:       500,   // per rare obama obtained
     MICHELLE:   5000,  // per michelle obtained
   },

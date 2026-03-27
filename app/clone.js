@@ -93,7 +93,7 @@ function BigStickFigure({ obama, size = 130 }) {
 }
 
 function ObamaCard({ obama }) {
-  const border = obama.isMichelle ? '#ff69b4' : obama.isRare ? '#b8860b' : obama.isSpecialty ? '#6b7b8d' : 'rgba(0,0,0,0.06)';
+  const border = obama.isMichelle ? '#ff69b4' : obama.isRare ? '#b8860b' : obama.isSynthetic ? '#6b7b8d' : 'rgba(0,0,0,0.06)';
   return (
     <View style={[cardStyles.card, { borderColor: border }]}>
       <MiniStickFigure obama={obama} size={50} />
@@ -152,8 +152,8 @@ export default function CloneScreen() {
     return () => { riffSound.current?.unloadAsync(); synthSound.current?.unloadAsync(); };
   }, []);
 
-  const playSound = useCallback((isRareOrMichelle) => {
-    const snd = isRareOrMichelle ? riffSound.current : synthSound.current;
+  const playSound = useCallback((isMichelle) => {
+    const snd = isMichelle ? riffSound.current : synthSound.current;
     snd?.setPositionAsync(0).then(() => snd?.playAsync());
   }, []);
 
@@ -162,8 +162,8 @@ export default function CloneScreen() {
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 100);
 
-    if (obama.isRare || obama.isMichelle || obama.isSpecialty) {
-      playSound(obama.isRare || obama.isMichelle);
+    if (obama.isRare || obama.isMichelle || obama.isSynthetic) {
+      playSound(obama.isMichelle);
       setSpecialClone(obama);
       cardOpacity.setValue(0);
       cardScale.setValue(0.8);
@@ -194,7 +194,7 @@ export default function CloneScreen() {
   const tagColor = specialClone?.isMichelle ? '#ff69b4' : specialClone?.isRare ? '#b8860b' : '#6b7b8d';
   const tagText = specialClone?.isMichelle ? '✦ MICHELLE ✦'
     : specialClone?.isRare ? `✦ RARE · ${TRAIT_LABELS[specialClone?.rareType] || 'SPECIAL'} ✦`
-    : `★ SPECIALTY · ${TRAIT_LABELS[specialClone?.rareType] || 'SPECIAL'} ★`;
+    : `★ SYNTHETIC · ${TRAIT_LABELS[specialClone?.rareType] || 'SPECIAL'} ★`;
 
   return (
     <ImageBackground source={require('../assets/cloud.jpg')} style={styles.bg} resizeMode="cover">

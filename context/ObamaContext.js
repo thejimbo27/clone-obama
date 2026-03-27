@@ -33,7 +33,7 @@ function generateObama() {
   const roll = Math.random();
 
   if (roll < 0.001) {
-    return { id, name: 'Michelle', isMichelle: true, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
+    return { id, name: 'Michelle', isMichelle: true, isRare: false, isSynthetic: false, rareType: null, rareTrait: null };
   }
   if (roll < 0.011) {
     const t = Math.random();
@@ -41,7 +41,7 @@ function generateObama() {
     if (t < 0.33) { rareType = 'hat'; rareTrait = pick(RARE_HATS); }
     else if (t < 0.66) { rareType = 'deformity'; rareTrait = pick(RARE_DEFORMITIES); }
     else { rareType = 'color'; rareTrait = pick(RARE_COLORS); }
-    return { id, name: randomName(), isMichelle: false, isRare: true, isSpecialty: false, rareType, rareTrait };
+    return { id, name: randomName(), isMichelle: false, isRare: true, isSynthetic: false, rareType, rareTrait };
   }
   if (roll < 0.091) {
     const t = Math.random();
@@ -49,24 +49,24 @@ function generateObama() {
     if (t < 0.33) { rareType = 'hat'; rareTrait = pick(SPEC_HATS); }
     else if (t < 0.66) { rareType = 'deformity'; rareTrait = pick(SPEC_DEFORMITIES); }
     else { rareType = 'color'; rareTrait = pick(SPEC_COLORS); }
-    return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: true, rareType, rareTrait };
+    return { id, name: randomName(), isMichelle: false, isRare: false, isSynthetic: true, rareType, rareTrait };
   }
 
-  return { id, name: randomName(), isMichelle: false, isRare: false, isSpecialty: false, rareType: null, rareTrait: null };
+  return { id, name: randomName(), isMichelle: false, isRare: false, isSynthetic: false, rareType: null, rareTrait: null };
 }
 
 const ObamaContext = createContext(null);
 
 export function ObamaProvider({ children }) {
   const [obamas, setObamas] = useState([
-    { id: 1, name: 'Barack', isMichelle: false, isRare: false, isSpecialty: false, rareType: null, rareTrait: null },
+    { id: 1, name: 'Barack', isMichelle: false, isRare: false, isSynthetic: false, rareType: null, rareTrait: null },
   ]);
   const [totalCloned, setTotalCloned] = useState(1);
   const [hqObamaId, setHqObamaId] = useState(1);
   const [missilesLaunched, setMissilesLaunched] = useState(0);
   const [pagesVisited, setPagesVisited] = useState(0);
   const [raresObtained, setRaresObtained] = useState(0);
-  const [specialtiesObtained, setSpecialtiesObtained] = useState(0);
+  const [syntheticsObtained, setSyntheticsObtained] = useState(0);
   const [michellesObtained, setMichellesObtained] = useState(0);
   const [playerName, setPlayerName] = useState(config.PLAYER_NAME_DEFAULT);
 
@@ -85,7 +85,7 @@ export function ObamaProvider({ children }) {
         setCollectedRareTraits((prev) => new Set([...prev, newObama.rareTrait]));
       }
     }
-    else if (newObama.isSpecialty) setSpecialtiesObtained((n) => n + 1);
+    else if (newObama.isSynthetic) setSyntheticsObtained((n) => n + 1);
     return newObama;
   }, []);
 
@@ -127,11 +127,11 @@ export function ObamaProvider({ children }) {
   const stats = useMemo(() => ({
     clones: totalCloned,
     rares: raresObtained,
-    specialties: specialtiesObtained,
+    synthetics: syntheticsObtained,
     michelles: michellesObtained,
     missiles: missilesLaunched,
     pages: pagesVisited,
-  }), [totalCloned, raresObtained, specialtiesObtained, michellesObtained, missilesLaunched, pagesVisited]);
+  }), [totalCloned, raresObtained, syntheticsObtained, michellesObtained, missilesLaunched, pagesVisited]);
 
   const score = useMemo(() => calculateScore(stats), [stats]);
 
@@ -139,7 +139,7 @@ export function ObamaProvider({ children }) {
     <ObamaContext.Provider
       value={{
         obamas, totalCloned, hqObama,
-        missilesLaunched, pagesVisited, raresObtained, specialtiesObtained, michellesObtained,
+        missilesLaunched, pagesVisited, raresObtained, syntheticsObtained, michellesObtained,
         stats, score, playerName,
         collectedRareTraits, allRaresCollected, joeBidenUnlocked,
         bidenPopupShown, setBidenPopupShown,

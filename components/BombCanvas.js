@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f7' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 52, paddingHorizontal: 20, paddingBottom: 8,
+    paddingTop: 52, paddingHorizontal: 20, paddingBottom: 8, zIndex: 10,
   },
   backBtn: { width: 60 },
   backText: { color: '#007aff', fontSize: 15, fontWeight: '400', letterSpacing: 1 },
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,122,255,0.15)',
   },
   countNum: { color: '#007aff', fontSize: 13, fontFamily: MONO, fontWeight: '500' },
-  canvasWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  canvasWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   btnSection: { alignItems: 'center', paddingBottom: 16 },
   launchBtn: {
     width: BTN_SIZE, height: BTN_SIZE, borderRadius: BTN_SIZE / 2,

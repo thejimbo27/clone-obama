@@ -504,7 +504,7 @@ export default function IslandCanvas() {
             <Text style={styles.modalName}>{selectedObama?.name}</Text>
             <Text style={styles.modalId}>#{String(selectedObama?.id || 0).padStart(4, '0')}</Text>
             {selectedObama?.isRare && <Text style={styles.modalRare}>✦ RARE ✦</Text>}
-            {selectedObama?.isSpecialty && <Text style={[styles.modalRare, { color: '#6b7b8d' }]}>★ SPECIALTY ★</Text>}
+            {selectedObama?.isSynthetic && <Text style={[styles.modalRare, { color: '#6b7b8d' }]}>★ SYNTHETIC ★</Text>}
             {selectedObama?.isMichelle && <Text style={[styles.modalRare, { color: '#ff69b4' }]}>✦ MICHELLE ✦</Text>}
 
             <TextInput

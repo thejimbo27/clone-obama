@@ -71,7 +71,7 @@ await LoadSkiaWeb({
 - `totalCloned` — lifetime counter
 - `hqObama` — the Obama currently operating HQ
 - `missilesLaunched` — lifetime missile counter
-- `raresObtained` / `specialtiesObtained` / `michellesObtained` — pull counters
+- `raresObtained` / `syntheticsObtained` / `michellesObtained` — pull counters
 - `collectedRareTraits` — Set of unique rare traits collected (for Biden unlock)
 - `joeBidenUnlocked` — derived boolean (Michelle is HQ + all 9 rare traits)
 - `stats` / `score` — computed from the above using score weights
@@ -99,9 +99,9 @@ Background: `cloud.jpg` (ink cloud photo) with a light white overlay.
 - Big pulsing circular button, **transparent red** (rgba red bg, red border, red icon/text).
 - **Spammable.** Normal clones show an inline toast below the button that fades out — doesn't block input.
 - **Red flash** on press.
-- **Scrollable clone cards** — horizontal FlatList at the bottom showing all Obamas as mini stick-figure cards (newest first). Cards have colored borders: gold for rare, silver for specialty, pink for Michelle.
-- **Specialty/Rare/Michelle overlay** — blocking overlay with spring animation. Cannot be dismissed by tapping background. Shows: tag (★ SPECIALTY / ✦ RARE / ✦ MICHELLE), full stick figure with trait, name, ID, trait label. Two buttons: **SET AS HQ** (immediately sets as operator) and **ACKNOWLEDGE** (just dismisses).
-- Sound effects: `riff.mp3` for rare/Michelle, `synth.mp3` for specialty.
+- **Scrollable clone cards** — horizontal FlatList at the bottom showing all Obamas as mini stick-figure cards (newest first). Cards have colored borders: gold for rare, silver for synthetic, pink for Michelle.
+- **Synthetic/Rare/Michelle overlay** — blocking overlay with spring animation. Cannot be dismissed by tapping background. Shows: tag (★ SPECIALTY / ✦ RARE / ✦ MICHELLE), full stick figure with trait, name, ID, trait label. Two buttons: **SET AS HQ** (immediately sets as operator) and **ACKNOWLEDGE** (just dismisses).
+- Sound effects: `riff.mp3` for rare/Michelle, `synth.mp3` for synthetic.
 - Score badge in header.
 
 ### Obama Island (`island.js` → `IslandCanvas.js` — Skia Canvas)
@@ -115,7 +115,7 @@ All Obamas live here. **Single Skia `<Canvas>`** with one game loop.
 **Trait rendering on island:**
 - **Color variants** — limbs drawn in trait color (golden, ghost, neon_green, blue_tint, red_tint, purple, sepia, inverted)
 - **Deformity variants** — huge/tiny/squished/stretched heads, long necks, missing arms, extra legs, thicc torsos
-- **Hat variants** — gold circle indicator above head (gold for rare hats, silver for specialty hats)
+- **Hat variants** — gold circle indicator above head (gold for rare hats, silver for synthetic hats)
 
 **Movement:** One `requestAnimationFrame` loop. Each Obama has a target position. They walk toward it, then pause, then pick a new target. Arms and legs sway as they walk. Subtle bob on idle.
 
@@ -172,13 +172,13 @@ A real working browser. Uses `react-native-webview` on native, `<iframe>` on web
 
 ### Obama Tiers
 
-A browser navigation (pressing GO) awards **5 pts**. Tracked as `pagesVisited` in context.
+Every browser page load (GO or link click) awards **5 pts**. Tracked as `pagesVisited` in context.
 
 | Tier | Chance | Sound | Overlay | Score |
 |------|--------|-------|---------|-------|
 | Normal | ~91% | — | Inline toast (auto-dismiss) | 2 pts |
-| Specialty | 8% | `synth.mp3` | Silver blocking overlay | 100 pts |
-| Rare | 1% | `riff.mp3` | Gold blocking overlay | 500 pts |
+| Synthetic | 8% | `synth.mp3` | Silver blocking overlay | 100 pts |
+| Rare | 1% | `synth.mp3` | Gold blocking overlay | 500 pts |
 | Michelle | 0.1% | `riff.mp3` | Pink blocking overlay | 5,000 pts |
 
 ### Rare Traits (1% — 9 total, all needed for Biden)
@@ -186,7 +186,7 @@ A browser navigation (pressing GO) awards **5 pts**. Tracked as `pagesVisited` i
 - **Deformities:** huge_head, tiny_head, sideways
 - **Colors:** golden, ghost
 
-### Specialty Traits (8%)
+### Synthetic Traits (8%)
 - **Hats:** 🪖 🎓 🧢 ⛑️ 🎀 🪿 🐸 🦅
 - **Deformities:** long_neck, no_arms, extra_legs, thicc, squished, stretched, backwards, wobble, big_feet, noodle_arms
 - **Colors:** neon_green, blue_tint, red_tint, purple, sepia, inverted
@@ -211,12 +211,12 @@ Set from the island tap modal or directly from the clone reveal overlay (SET AS 
 Individual or mass release. Obamas ascend upward and fade out. They're gone.
 
 ### Score & Leaderboard
-Score = (clones × 2) + (pages × 5) + (specialties × 100) + (rares × 500) + (michelles × 5,000) + (missiles × 1). Each browser navigation awards 5 pts. Rares dominate — a single rare is worth 250 clones or 500 missiles. Weights configurable in `config.js`.
+Score = (clones × 2) + (pages × 5) + (synthetics × 100) + (rares × 500) + (michelles × 5,000) + (missiles × 1). Each browser navigation awards 5 pts. Rares dominate — a single rare is worth 250 clones or 500 missiles. Weights configurable in `config.js`.
 
 ### Sound Effects
 - `ere.mp3` — plays when entering Obama Island
-- `riff.mp3` — plays when a rare Obama or Michelle is cloned
-- `synth.mp3` — plays when a specialty Obama is cloned
+- `riff.mp3` — plays when a Michelle is cloned
+- `synth.mp3` — plays when a rare or synthetic Obama is cloned
 
 ## CONFIGURATION
 
@@ -254,13 +254,13 @@ All in `/assets/`:
 - `island.jpeg` — 429×524, island reference
 - `ere.mp3` — "ere" sound for island entry
 - `riff.mp3` — guitar riff for rare/Michelle reveals
-- `synth.mp3` — soft synth for specialty reveals
+- `synth.mp3` — soft synth for synthetic reveals
 
 ## VIBES
 
 - **Hyper-modern, minimalist. Steve Jobs.**
 - **Light theme.** White/light gray backgrounds. Thin font weights. Wide letter-spacing. Frosted glass panels.
-- System colors: red (cloner), green (island), blue (bomb/browser controls), orange (leaderboard), pink (Michelle), gold (rare), silver (specialty).
+- System colors: red (cloner), green (island), blue (bomb/browser controls), orange (leaderboard), pink (Michelle), gold (rare), silver (synthetic).
 - Transparent red on the clone button. Transparent blue on the bomb button.
 - Obama's head on a stick figure body — everywhere.
 - `cloud.jpg` as the atmospheric background (light overlaid).
