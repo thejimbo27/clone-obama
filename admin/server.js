@@ -72,6 +72,9 @@ db.exec(`
   );
 `);
 
+// Migrations
+try { db.exec('ALTER TABLE obama_templates ADD COLUMN name_override TEXT DEFAULT NULL'); } catch (e) { /* column already exists */ }
+
 // ─── Express ─────────────────────────────────────────
 const app = express();
 const PORT = process.env.ADMIN_PORT || 3000;
@@ -154,10 +157,10 @@ app.post('/templates', upload.single('headshot'), (req, res) => {
   const id = uuid();
   const b = req.body;
   db.prepare(`
-    INSERT INTO obama_templates (id, name, tier, rarity_weight, headshot, torso_length, arm_count, leg_count, arm_length, leg_length, body_color, rare_type, rare_trait)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO obama_templates (id, name, name_override, tier, rarity_weight, headshot, torso_length, arm_count, leg_count, arm_length, leg_length, body_color, rare_type, rare_trait)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    id, b.name, b.tier, parseFloat(b.rarity_weight) || 1,
+    id, b.name, b.name_override || null, b.tier, parseFloat(b.rarity_weight) || 1,
     req.file ? req.file.filename : (b.headshot || null),
     parseFloat(b.torso_length) || 1,
     parseInt(b.arm_count) || 2, parseInt(b.leg_count) || 2,
@@ -186,13 +189,13 @@ app.post('/templates/:id', upload.single('headshot'), (req, res) => {
 
   db.prepare(`
     UPDATE obama_templates SET
-      name = ?, tier = ?, rarity_weight = ?, headshot = ?,
+      name = ?, name_override = ?, tier = ?, rarity_weight = ?, headshot = ?,
       torso_length = ?, arm_count = ?, leg_count = ?,
       arm_length = ?, leg_length = ?, body_color = ?,
       rare_type = ?, rare_trait = ?, updated_at = datetime('now')
     WHERE id = ?
   `).run(
-    b.name, b.tier, parseFloat(b.rarity_weight) || 1, headshot,
+    b.name, b.name_override || null, b.tier, parseFloat(b.rarity_weight) || 1, headshot,
     parseFloat(b.torso_length) || 1,
     parseInt(b.arm_count) || 2, parseInt(b.leg_count) || 2,
     parseFloat(b.arm_length) || 1, parseFloat(b.leg_length) || 1,

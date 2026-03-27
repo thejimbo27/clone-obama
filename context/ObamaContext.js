@@ -56,7 +56,7 @@ function generateFromTemplates(templatesByTier) {
 
   return {
     id,
-    name: tier === 'michelle' ? 'Michelle' : randomName(),
+    name: template.name_override || (tier === 'michelle' ? 'Michelle' : randomName()),
     isMichelle: tier === 'michelle',
     isRare: tier === 'rare',
     isSynthetic: tier === 'synthetic',
