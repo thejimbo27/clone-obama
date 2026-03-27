@@ -1,0 +1,7 @@
+version: 3
+agent:
+  authtoken: "${NGROK_AUTHTOKEN}"
+tunnels:
+  obama-hq:
+    addr: 4000
+    proto: http

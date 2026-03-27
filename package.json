@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "android": "expo start --android",
     "admin": "cd admin && node server.js",
-    "seed": "cd admin && node ../db/seed.js"
+    "seed": "cd admin && node ../db/seed.js",
+    "proxy": "node proxy.js",
+    "tunnel": "ngrok start --config ngrok.yml --all"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.6",
