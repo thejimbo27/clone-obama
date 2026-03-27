@@ -1,12 +1,32 @@
-// Server-side in-memory leaderboard store.
+// Server-side leaderboard store.
 // This module runs in the Metro/server process, NOT the browser.
-// Data persists across client refreshes but resets when the server restarts.
-// To persist permanently, swap this for a real DB adapter (see config.js).
+// Scores are persisted to data/leaderboard.json so they survive server restarts.
+// To use a real DB instead, set DB_CONNECTION_STRING in config.js.
+
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 const MAX_ENTRIES = 50;
+const DATA_FILE = join(process.cwd(), 'data', 'leaderboard.json');
 
-// This array lives in server memory
-const entries = [];
+function loadFromDisk() {
+  try {
+    return JSON.parse(readFileSync(DATA_FILE, 'utf8'));
+  } catch {
+    return [];
+  }
+}
+
+function saveToDisk(arr) {
+  try {
+    mkdirSync(join(process.cwd(), 'data'), { recursive: true });
+    writeFileSync(DATA_FILE, JSON.stringify(arr));
+  } catch (e) {
+    console.warn('leaderboard: save failed:', e.message);
+  }
+}
+
+const entries = loadFromDisk();
 
 function upsert(entry) {
   const idx = entries.findIndex((e) => e.name === entry.name);
@@ -19,6 +39,7 @@ function upsert(entry) {
   }
   entries.sort((a, b) => b.score - a.score);
   if (entries.length > MAX_ENTRIES) entries.length = MAX_ENTRIES;
+  saveToDisk(entries);
 }
 
 function getAll() {

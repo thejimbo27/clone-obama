@@ -35,13 +35,13 @@ export default function LeaderboardScreen() {
 
   const handleSubmit = useCallback(async () => {
     try {
-      await submitScore({ name: playerName, score, stats });
+      const updated = await submitScore({ name: playerName, score, stats });
       setSubmitted(true);
-      await loadBoard();
+      setEntries(updated);
     } catch (e) {
       console.warn('Submit failed:', e);
     }
-  }, [playerName, score, stats, loadBoard]);
+  }, [playerName, score, stats]);
 
   const handleNameSave = useCallback(() => {
     if (nameInput.trim()) {
@@ -149,9 +149,9 @@ export default function LeaderboardScreen() {
           <Text style={styles.dbLabel}>
             {config.DB_CONNECTION_STRING
               ? `DB: ${config.DB_CONNECTION_STRING.split('@')[1]?.split('/')[0] || 'connected'}`
-              : 'STORAGE: IN-MEMORY'}
+              : 'STORAGE: SERVER (PERSISTS ACROSS RELOADS)'}
           </Text>
-          <Text style={styles.dbHint}>Configure DB_CONNECTION_STRING in config.js to persist</Text>
+          <Text style={styles.dbHint}>Set DB_CONNECTION_STRING in config.js for a real database</Text>
         </View>
 
       </ScrollView>
