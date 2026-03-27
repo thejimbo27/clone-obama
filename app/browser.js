@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, Pressable, TextInput, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useObamas } from '../context/ObamaContext';
 
 const MONO = Platform.OS === 'web' ? 'monospace' : 'Courier';
 const DEFAULT_URL = 'https://en.wikipedia.org/wiki/Barack_Obama';
@@ -26,6 +27,7 @@ function WebViewWeb({ uri }) {
 
 export default function BrowserScreen() {
   const router = useRouter();
+  const { addPageVisit } = useObamas();
   const [url, setUrl] = useState(DEFAULT_URL);
   const [inputUrl, setInputUrl] = useState(DEFAULT_URL);
 
@@ -34,7 +36,8 @@ export default function BrowserScreen() {
     if (!u) return;
     if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
     setUrl(u);
-  }, [inputUrl]);
+    addPageVisit();
+  }, [inputUrl, addPageVisit]);
 
   return (
     <View style={styles.container}>

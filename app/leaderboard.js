@@ -96,6 +96,7 @@ export default function LeaderboardScreen() {
             <BreakdownRow label="Rares" count={stats.rares} weight={W.RARE} pts={stats.rares * W.RARE} color="#b8860b" />
             <BreakdownRow label="Michelles" count={stats.michelles} weight={W.MICHELLE} pts={stats.michelles * W.MICHELLE} color="#ff69b4" />
             <BreakdownRow label="Missiles" count={stats.missiles} weight={W.MISSILE} pts={stats.missiles * W.MISSILE} color="#007aff" />
+            <BreakdownRow label="Pages" count={stats.pages} weight={W.PAGE_VISIT} pts={stats.pages * W.PAGE_VISIT} color="#5856d6" />
           </View>
 
           <Pressable

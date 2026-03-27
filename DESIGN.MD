@@ -161,6 +161,7 @@ A real working browser. Uses `react-native-webview` on native, `<iframe>` on web
   - Rares × 500
   - Michelles × 5,000
   - Missiles × 1
+  - Pages × 5
 - SUBMIT SCORE button (turns green with ✓ after submission)
 
 **Rankings Table:** Medal emojis for top 3. Player's own row highlighted blue. Shows name + score.
@@ -170,6 +171,8 @@ A real working browser. Uses `react-native-webview` on native, `<iframe>` on web
 ## FEATURES
 
 ### Obama Tiers
+
+A browser navigation (pressing GO) awards **5 pts**. Tracked as `pagesVisited` in context.
 
 | Tier | Chance | Sound | Overlay | Score |
 |------|--------|-------|---------|-------|
@@ -208,7 +211,7 @@ Set from the island tap modal or directly from the clone reveal overlay (SET AS 
 Individual or mass release. Obamas ascend upward and fade out. They're gone.
 
 ### Score & Leaderboard
-Score = (clones × 2) + (specialties × 100) + (rares × 500) + (michelles × 5,000) + (missiles × 1). Rares dominate — a single rare is worth 250 clones or 500 missiles. Weights configurable in `config.js`.
+Score = (clones × 2) + (pages × 5) + (specialties × 100) + (rares × 500) + (michelles × 5,000) + (missiles × 1). Each browser navigation awards 5 pts. Rares dominate — a single rare is worth 250 clones or 500 missiles. Weights configurable in `config.js`.
 
 ### Sound Effects
 - `ere.mp3` — plays when entering Obama Island

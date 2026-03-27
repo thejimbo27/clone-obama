@@ -64,6 +64,7 @@ export function ObamaProvider({ children }) {
   const [totalCloned, setTotalCloned] = useState(1);
   const [hqObamaId, setHqObamaId] = useState(1);
   const [missilesLaunched, setMissilesLaunched] = useState(0);
+  const [pagesVisited, setPagesVisited] = useState(0);
   const [raresObtained, setRaresObtained] = useState(0);
   const [specialtiesObtained, setSpecialtiesObtained] = useState(0);
   const [michellesObtained, setMichellesObtained] = useState(0);
@@ -90,6 +91,10 @@ export function ObamaProvider({ children }) {
 
   const addMissiles = useCallback((count) => {
     setMissilesLaunched((n) => n + count);
+  }, []);
+
+  const addPageVisit = useCallback(() => {
+    setPagesVisited((n) => n + 1);
   }, []);
 
   const removeObama = useCallback(
@@ -125,7 +130,8 @@ export function ObamaProvider({ children }) {
     specialties: specialtiesObtained,
     michelles: michellesObtained,
     missiles: missilesLaunched,
-  }), [totalCloned, raresObtained, specialtiesObtained, michellesObtained, missilesLaunched]);
+    pages: pagesVisited,
+  }), [totalCloned, raresObtained, specialtiesObtained, michellesObtained, missilesLaunched, pagesVisited]);
 
   const score = useMemo(() => calculateScore(stats), [stats]);
 
@@ -133,11 +139,11 @@ export function ObamaProvider({ children }) {
     <ObamaContext.Provider
       value={{
         obamas, totalCloned, hqObama,
-        missilesLaunched, raresObtained, specialtiesObtained, michellesObtained,
+        missilesLaunched, pagesVisited, raresObtained, specialtiesObtained, michellesObtained,
         stats, score, playerName,
         collectedRareTraits, allRaresCollected, joeBidenUnlocked,
         bidenPopupShown, setBidenPopupShown,
-        addObama, addMissiles, removeObama, removeAllObamas,
+        addObama, addMissiles, addPageVisit, removeObama, removeAllObamas,
         renameObama, setHqOperator, setPlayerName,
         ALL_RARE_TRAITS,
       }}
