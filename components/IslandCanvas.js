@@ -409,7 +409,7 @@ export default function IslandCanvas() {
               value={renameText}
               onChangeText={setRenameText}
               placeholder="Rename..."
-              placeholderTextColor="rgba(255,255,255,0.2)"
+              placeholderTextColor="rgba(0,0,0,0.2)"
               onSubmitEditing={() => handleRename(selectedObama?.id)}
             />
 
@@ -417,11 +417,11 @@ export default function IslandCanvas() {
               <Pressable style={styles.modalBtn} onPress={() => handleRename(selectedObama?.id)}>
                 <Text style={styles.modalBtnText}>RENAME</Text>
               </Pressable>
-              <Pressable style={[styles.modalBtn, { borderColor: 'rgba(0,229,255,0.4)' }]} onPress={() => handleSetHQ(selectedObama?.id)}>
-                <Text style={[styles.modalBtnText, { color: '#00e5ff' }]}>SET AS HQ</Text>
+              <Pressable style={[styles.modalBtn, { borderColor: 'rgba(0,122,255,0.3)' }]} onPress={() => handleSetHQ(selectedObama?.id)}>
+                <Text style={[styles.modalBtnText, { color: '#007aff' }]}>SET AS HQ</Text>
               </Pressable>
-              <Pressable style={[styles.modalBtn, { borderColor: 'rgba(255,59,59,0.4)' }]} onPress={() => handleRelease(selectedObama?.id)}>
-                <Text style={[styles.modalBtnText, { color: '#ff3b3b' }]}>RELEASE</Text>
+              <Pressable style={[styles.modalBtn, { borderColor: 'rgba(255,59,48,0.3)' }]} onPress={() => handleRelease(selectedObama?.id)}>
+                <Text style={[styles.modalBtnText, { color: '#ff3b30' }]}>RELEASE</Text>
               </Pressable>
             </View>
           </View>
@@ -432,55 +432,56 @@ export default function IslandCanvas() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#080e1a' },
+  container: { flex: 1, backgroundColor: '#f5f5f7' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 52, paddingHorizontal: 20, paddingBottom: 12,
   },
   backBtn: { width: 60 },
-  backText: { color: '#00e5ff', fontSize: 15, fontWeight: '300', letterSpacing: 1 },
-  headerTitle: { fontSize: 12, color: 'rgba(255,255,255,0.4)', letterSpacing: 6, fontWeight: '300' },
+  backText: { color: '#007aff', fontSize: 15, fontWeight: '400', letterSpacing: 1 },
+  headerTitle: { fontSize: 12, color: 'rgba(0,0,0,0.35)', letterSpacing: 6, fontWeight: '300' },
   countBadge: {
-    backgroundColor: 'rgba(0,229,255,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(52,199,89,0.1)', borderRadius: 12,
     paddingHorizontal: 12, paddingVertical: 4,
-    borderWidth: 1, borderColor: 'rgba(0,229,255,0.2)',
+    borderWidth: 1, borderColor: 'rgba(52,199,89,0.2)',
   },
-  countText: { color: '#00e5ff', fontSize: 13, fontFamily: MONO, fontWeight: '500' },
+  countText: { color: '#34c759', fontSize: 13, fontFamily: MONO, fontWeight: '500' },
   canvasWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   releaseAllBtn: {
     marginHorizontal: 24, marginBottom: 30, paddingVertical: 14,
     borderRadius: 12, borderWidth: 1,
-    borderColor: 'rgba(255,59,59,0.25)',
-    backgroundColor: 'rgba(255,59,59,0.06)',
+    borderColor: 'rgba(255,59,48,0.2)',
+    backgroundColor: 'rgba(255,59,48,0.04)',
     alignItems: 'center',
   },
-  releaseAllText: { color: 'rgba(255,59,59,0.7)', fontSize: 10, letterSpacing: 4, fontWeight: '500' },
+  releaseAllText: { color: 'rgba(255,59,48,0.6)', fontSize: 10, letterSpacing: 4, fontWeight: '500' },
   emptyWrap: { alignItems: 'center', paddingBottom: 40 },
-  emptyText: { color: 'rgba(255,255,255,0.2)', fontSize: 12, letterSpacing: 4, fontFamily: MONO },
-  emptySubtext: { color: 'rgba(255,255,255,0.1)', fontSize: 11, marginTop: 8 },
+  emptyText: { color: 'rgba(0,0,0,0.2)', fontSize: 12, letterSpacing: 4, fontFamily: MONO },
+  emptySubtext: { color: 'rgba(0,0,0,0.12)', fontSize: 11, marginTop: 8 },
   modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center', alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: 'rgba(15,15,25,0.97)', borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#fff', borderRadius: 24,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
     padding: 28, minWidth: 260, alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 20, elevation: 8,
   },
-  modalName: { fontSize: 24, fontWeight: '200', color: '#fff', letterSpacing: 4 },
-  modalId: { fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: MONO, marginTop: 4, letterSpacing: 2 },
-  modalRare: { fontSize: 10, color: '#ffd700', letterSpacing: 3, marginTop: 8, fontWeight: '600' },
+  modalName: { fontSize: 24, fontWeight: '200', color: '#1a1a1a', letterSpacing: 4 },
+  modalId: { fontSize: 12, color: 'rgba(0,0,0,0.2)', fontFamily: MONO, marginTop: 4, letterSpacing: 2 },
+  modalRare: { fontSize: 10, color: '#b8860b', letterSpacing: 3, marginTop: 8, fontWeight: '600' },
   renameInput: {
-    width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    width: '100%', borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
     borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10,
-    color: '#fff', fontSize: 14, marginTop: 20,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    color: '#1a1a1a', fontSize: 14, marginTop: 20,
+    backgroundColor: 'rgba(0,0,0,0.02)',
     textAlign: 'center', letterSpacing: 2,
   },
   modalBtns: { flexDirection: 'row', gap: 10, marginTop: 20, flexWrap: 'wrap', justifyContent: 'center' },
   modalBtn: {
     paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)',
   },
-  modalBtnText: { fontSize: 9, color: 'rgba(255,255,255,0.6)', letterSpacing: 2, fontWeight: '500' },
+  modalBtnText: { fontSize: 9, color: 'rgba(0,0,0,0.5)', letterSpacing: 2, fontWeight: '500' },
 });

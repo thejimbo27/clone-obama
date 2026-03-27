@@ -46,11 +46,11 @@ export default function Layout() {
   return (
     <SkiaLoader>
       <ObamaProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#0a0a0a' },
+            contentStyle: { backgroundColor: '#f5f5f7' },
             animation: 'fade',
           }}
         />
@@ -62,12 +62,12 @@ export default function Layout() {
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#f5f5f7',
     justifyContent: 'center',
     alignItems: 'center',
   },
   loaderText: {
-    color: '#00e5ff',
+    color: '#888',
     marginTop: 16,
     fontFamily: Platform.OS === 'web' ? 'monospace' : 'Courier',
     fontSize: 12,

@@ -3,24 +3,21 @@ import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-nativ
 
 const MONO = Platform.OS === 'web' ? 'monospace' : 'Courier';
 
-// React.lazy defers module evaluation of IslandCanvas (which imports Skia)
-// until this component actually renders. By then, _layout.js's SkiaLoader
-// has already called LoadSkiaWeb() and set global.CanvasKit.
-const IslandCanvas = React.lazy(() => import('../components/IslandCanvas'));
+const BombCanvas = React.lazy(() => import('../components/BombCanvas'));
 
 function LoadingFallback() {
   return (
     <View style={styles.loader}>
-      <ActivityIndicator size="large" color="#00e5ff" />
-      <Text style={styles.loaderText}>LOADING ISLAND...</Text>
+      <ActivityIndicator size="large" color="#007aff" />
+      <Text style={styles.loaderText}>ARMING SYSTEMS...</Text>
     </View>
   );
 }
 
-export default function IslandScreen() {
+export default function BombScreen() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <IslandCanvas />
+      <BombCanvas />
     </Suspense>
   );
 }
