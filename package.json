@@ -6,9 +6,15 @@
     "start": "expo start",
     "web": "expo start --web",
     "ios": "expo start --ios",
-    "android": "expo start --android"
+    "android": "expo start --android",
+    "admin": "cd admin && node server.js",
+    "seed": "cd admin && node ../db/seed.js"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~55.0.6",
+    "@expo/vector-icons": "^15.0.2",
+    "@shopify/react-native-skia": "~2.5.4",
+    "better-sqlite3": "^12.8.0",
     "expo": "~55.0.8",
     "expo-av": "~16.0.8",
     "expo-constants": "~55.0.9",
@@ -24,9 +30,7 @@
     "react-native-screens": "~4.24.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "~13.13.5",
-    "@shopify/react-native-skia": "~2.5.4",
-    "@expo/metro-runtime": "~55.0.6",
-    "@expo/vector-icons": "^15.0.2"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",

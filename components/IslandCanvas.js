@@ -244,6 +244,7 @@ export default function IslandCanvas() {
   const spriteRenders = obamas.map((o) => {
     const s = spriteData.current[o.id];
     if (!s) return null;
+    const t = o.template;
 
     const opacity = s.ascending ? Math.max(0, 1 - s.ascendProgress) : 1;
     const headImg = o.isMichelle ? michelleHead : obamaHead;
@@ -257,33 +258,39 @@ export default function IslandCanvas() {
     const headScales = { huge_head: 1.5, tiny_head: 0.6, squished: 0.7, stretched: 1.3 };
     const finalHeadSize = headSize * (headScales[o.rareTrait] || 1);
 
-    // Color mapping for all color variants
+    // Color — template body_color takes priority, then trait-based color, then default white
     const colorMap = {
       golden: '#ffd700', ghost: 'rgba(200,200,255,0.4)',
       neon_green: '#39ff14', blue_tint: '#4488ff', red_tint: '#ff4444',
       purple: '#9b59b6', sepia: '#8B7355', inverted: '#ffffff',
     };
-    const limbColor = (o.rareType === 'color' && colorMap[o.rareTrait]) || '#ffffff';
+    const limbColor = (t?.body_color && t.body_color !== '#333333')
+      ? t.body_color
+      : (o.rareType === 'color' && colorMap[o.rareTrait]) || '#ffffff';
     const isGhost = o.rareTrait === 'ghost';
     const effectiveOpacity = opacity * (isGhost ? 0.45 : (o.rareTrait === 'inverted' ? 0.7 : 1));
 
-    // Body modifiers for specialty deformities
-    const neckExtra = o.rareTrait === 'long_neck' ? 8 : 0;
-    const showArms = o.rareTrait !== 'no_arms';
-    const legCount = o.rareTrait === 'extra_legs' ? 4 : 2;
+    // Body modifiers — template values override trait-based defaults
+    const torsoMul = t?.torso_length ?? 1;
+    const armMul = t?.arm_length ?? 1;
+    const legMul = t?.leg_length ?? 1;
+    const neckExtra = o.rareTrait === 'long_neck' ? 8 : (torsoMul > 1.2 ? 4 * (torsoMul - 1) : 0);
+    const armCount = t?.arm_count ?? 2;
+    const showArms = armCount > 0 && o.rareTrait !== 'no_arms';
+    const legCount = t?.leg_count ?? (o.rareTrait === 'extra_legs' ? 4 : 2);
     const bodyThick = o.rareTrait === 'thicc' ? 3.5 : 2;
 
     const x = s.x;
     const y = s.y + bobY;
     const torsoTop = y + neckExtra;
-    const torsoBottom = torsoTop + 22;
+    const torsoBottom = torsoTop + 22 * torsoMul;
     const lArmX = x + Math.sin((armSwing * Math.PI) / 180) * 14;
     const rArmX = x - Math.sin((armSwing * Math.PI) / 180) * 14;
     const armY = torsoTop + 5;
-    const armEndY = torsoTop + 18;
+    const armEndY = torsoTop + 18 * armMul;
     const lLegX = x + 4 + Math.sin((legSwing * Math.PI) / 180) * 10;
     const rLegX = x - 4 - Math.sin((legSwing * Math.PI) / 180) * 10;
-    const legEndY = torsoBottom + 18;
+    const legEndY = torsoBottom + 18 * legMul;
 
     return {
       key: o.id, obama: o, effectiveOpacity,
@@ -291,7 +298,7 @@ export default function IslandCanvas() {
       x, y, torsoTop, torsoBottom,
       lArmX, rArmX, armY, armEndY,
       lLegX, rLegX, legEndY,
-      showArms, bodyThick, legCount, neckExtra,
+      showArms, bodyThick, legCount, armCount, neckExtra,
     };
   }).filter(Boolean);
 

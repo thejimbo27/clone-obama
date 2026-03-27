@@ -13,6 +13,9 @@ Clone Obamas. Collect rares. Bomb Iran. Unlock Joe Biden.
 - **@shopify/react-native-skia** — GPU-accelerated canvas for Obama Island and Bomb Iran (the only scenes that need game-engine rendering)
 - **expo-av** — sound effects
 - **react-native-webview** — real browser (native), iframe fallback (web)
+- **better-sqlite3** — SQLite database for templates, accessories, and leaderboard
+- **Express + EJS** — admin panel (separate app at `admin/`)
+- **multer** — file upload handling for headshots and accessories
 - All other screens use standard React Native components and the built-in Animated API
 
 ## ARCHITECTURE
@@ -29,19 +32,36 @@ app/
 ├── browser.js      ─── Web Browser
 ├── leaderboard.js  ─── Leaderboard + Score Breakdown
 └── api/
-    └── leaderboard+api.js  ─── Server-side leaderboard (optional)
+    ├── leaderboard+api.js   ─── Leaderboard CRUD (SQLite)
+    ├── templates+api.js     ─── Obama templates API (read-only)
+    ├── accessories+api.js   ─── Accessories API (read-only)
+    └── uploads/
+        └── [filename]+api.js ─── Serve uploaded files
 
 components/
 ├── IslandCanvas.js ─── Skia canvas (lazy-loaded, code-split)
 └── BombCanvas.js   ─── Skia canvas (lazy-loaded, code-split)
 
 context/
-└── ObamaContext.js  ─── Global state
+└── ObamaContext.js  ─── Global state (fetches templates from API on mount)
 
 services/
 └── leaderboard.js   ─── Leaderboard client (module-level store + API fallback)
 
-config.js            ─── Configurable settings (DB string, score weights)
+db/
+├── schema.js        ─── Shared SQLite schema (used by main app + admin)
+└── seed.js          ─── Seed DB with default templates
+
+admin/               ─── Separate Express app (admin panel)
+├── server.js        ─── Express server with basic auth, CRUD, file uploads
+├── package.json
+└── views/           ─── EJS templates (dashboard, template form, accessory form)
+
+data/                ─── gitignored runtime data
+├── obama.db         ─── SQLite database
+└── uploads/         ─── Uploaded headshots and accessories
+
+config.js            ─── Configurable settings (score weights)
 ```
 
 ### Why Skia?
@@ -63,6 +83,40 @@ await LoadSkiaWeb({
     `https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.40.0/bin/full/${file}`,
 });
 ```
+
+### Database
+
+SQLite via `better-sqlite3`. The DB file lives at `data/obama.db` and is shared by both the main Expo server-side API routes and the admin panel.
+
+**Tables:**
+- `obama_templates` — configurable obama types with tier, rarity weight, headshot, body params, rare type/trait
+- `accessories` — uploadable images that attach to body parts (head_top, torso_front, left_hand, etc.)
+- `template_accessories` — join table linking templates to accessories
+- `leaderboard` — player scores
+
+Run `npm run seed` to populate the DB with all default obama templates (normal, 9 rares, synthetics, michelle).
+
+### Admin Panel
+
+Separate Express app at `admin/`. Run with `npm run admin` (port 3000).
+
+- **Basic auth**: default `admin` / `obama44` (override with `ADMIN_USER` / `ADMIN_PASS` env vars)
+- **Dashboard**: template counts by tier, recent templates, accessories, leaderboard top 10
+- **Templates CRUD**: create/edit/delete obama templates with full body configuration (arm/leg count, limb lengths, torso length, body color, headshot upload, accessory attachment)
+- **Accessories CRUD**: upload accessory images, set attach point, offset, scale
+- **File uploads**: via multer to `data/uploads/`, served by the main app at `/api/uploads/:filename`
+
+### Obama Templates
+
+Each template defines a fully configurable obama type:
+- **tier**: normal (91%), synthetic (8%), rare (1%), michelle (0.1%)
+- **rarity_weight**: relative weight within the tier (for weighted random selection)
+- **headshot**: uploaded image or bundled asset name (defaults to obama.png)
+- **body params**: arm_count, leg_count, arm_length, leg_length, torso_length (all multipliers), body_color
+- **rare_type/trait**: hat, deformity, or color variant
+- **accessories**: linked via join table, each with attach_point, offset, and scale
+
+The main app fetches templates from `/api/templates` on mount. `generateObama()` uses weighted random selection from the template pool. Falls back to hardcoded generation if the API is unreachable.
 
 ### State
 
@@ -102,7 +156,7 @@ Background: `cloud.jpg` (ink cloud photo) with a light white overlay.
 - **Red flash** on press.
 - **Scrollable clone cards** — horizontal FlatList at the bottom showing all Obamas as mini stick-figure cards (newest first). Cards have colored borders: gold for rare, silver for synthetic, pink for Michelle.
 - **Synthetic/Rare/Michelle overlay** — blocking overlay with spring animation. Cannot be dismissed by tapping background. Shows: tag (★ SYNTHETIC / ✦ RARE / ✦ MICHELLE), full stick figure with trait, name, ID, trait label. Two buttons: **SET AS HQ** (immediately sets as operator) and **ACKNOWLEDGE** (just dismisses).
-- Sound effects: `riff.mp3` for Michelle, `synth.mp3` for rare and synthetic.
+- Sound effects: `riff.mp3` for rare, `synth.mp3` for Michelle, `synthetic.mp3` for synthetic.
 - Score badge in header.
 
 ### Obama Island (`island.js` → `IslandCanvas.js` — Skia Canvas)
@@ -178,9 +232,9 @@ Every browser page load (GO or link click) awards **5 pts**. Tracked as `pagesVi
 | Tier | Chance | Sound | Overlay | Score |
 |------|--------|-------|---------|-------|
 | Normal | ~91% | — | Inline toast (auto-dismiss) | 2 pts |
-| Synthetic | 8% | `synth.mp3` | Silver blocking overlay | 100 pts |
-| Rare | 1% | `synth.mp3` | Gold blocking overlay | 500 pts |
-| Michelle | 0.1% | `riff.mp3` | Pink blocking overlay | 5,000 pts |
+| Synthetic | 8% | `synthetic.mp3` | Silver blocking overlay | 100 pts |
+| Rare | 1% | `riff.mp3` | Gold blocking overlay | 500 pts |
+| Michelle | 0.1% | `synth.mp3` | Pink blocking overlay | 5,000 pts |
 
 ### Rare Traits (1% — 9 total, all needed for Biden)
 - **Hats:** 🎩 👑 🥳 🤠
@@ -216,8 +270,9 @@ Score = (clones × 2) + (pages × 5) + (synthetics × 100) + (rares × 500) + (m
 
 ### Sound Effects
 - `ere.mp3` — plays when entering Obama Island
-- `riff.mp3` — plays when a Michelle is cloned
-- `synth.mp3` — plays when a rare or synthetic Obama is cloned
+- `riff.mp3` — plays when a rare Obama is cloned
+- `synth.mp3` — plays when a Michelle is cloned
+- `synthetic.mp3` — plays when a synthetic Obama is cloned
 
 ## CONFIGURATION
 
@@ -255,8 +310,11 @@ All in `/assets/`:
 - `cloud.jpg` — voronoi mosaic with Arabic "Barack Obama" (background for HQ and cloner)
 - `island.jpeg` — 429×524, island reference
 - `ere.mp3` — "ere" sound for island entry
-- `riff.mp3` — guitar riff for Michelle reveals
-- `synth.mp3` — soft synth for rare and synthetic reveals
+- `riff.mp3` — guitar riff for rare Obama reveals
+- `synth.mp3` — soft synth for Michelle reveals
+- `synthetic.mp3` — synth sound for synthetic Obama reveals
+
+Uploaded assets (headshots, accessories) are stored in `data/uploads/` and served via `/api/uploads/:filename`.
 
 ## VIBES
 

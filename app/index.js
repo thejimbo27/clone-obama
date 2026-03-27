@@ -62,6 +62,8 @@ function DataStream({ left }) {
 function StickObama({ obama, size = 100 }) {
   const headSize = size * 0.35;
   const isMichelle = obama?.isMichelle;
+  const torsoH = size * 0.28;
+  const suitW = size * 0.22;
   return (
     <View style={{ width: size, height: size * 1.3, alignItems: 'center' }}>
       <Image
@@ -70,11 +72,27 @@ function StickObama({ obama, size = 100 }) {
         resizeMode="cover"
       />
       <View style={{ alignItems: 'center', marginTop: -4 }}>
-        <View style={{ width: 2, height: size * 0.28, backgroundColor: '#333' }} />
-        <View style={{ position: 'absolute', top: 4 }}>
-          <View style={{ width: 2, height: size * 0.22, backgroundColor: '#333', transform: [{ rotate: '35deg' }], position: 'absolute', left: -size * 0.14 }} />
-          <View style={{ width: 2, height: size * 0.22, backgroundColor: '#333', transform: [{ rotate: '-35deg' }], position: 'absolute', right: -size * 0.14 }} />
+        {/* Suit jacket */}
+        <View style={{
+          width: suitW, height: torsoH, backgroundColor: '#1c1c1e',
+          borderBottomLeftRadius: suitW * 0.3, borderBottomRightRadius: suitW * 0.3,
+          borderTopLeftRadius: suitW * 0.15, borderTopRightRadius: suitW * 0.15,
+          alignItems: 'center', paddingTop: 3,
+        }}>
+          {/* Lapels */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 2 }}>
+            <View style={{ width: 4, height: torsoH * 0.4, backgroundColor: '#2c2c2e', transform: [{ rotate: '8deg' }], borderRadius: 1 }} />
+            <View style={{ width: 4, height: torsoH * 0.4, backgroundColor: '#2c2c2e', transform: [{ rotate: '-8deg' }], borderRadius: 1 }} />
+          </View>
+          {/* Tie */}
+          <View style={{ width: 3, height: torsoH * 0.5, backgroundColor: '#c0392b', borderRadius: 1, marginTop: -torsoH * 0.2 }} />
         </View>
+        {/* Arms */}
+        <View style={{ position: 'absolute', top: 4 }}>
+          <View style={{ width: 2, height: size * 0.22, backgroundColor: '#1c1c1e', transform: [{ rotate: '35deg' }], position: 'absolute', left: -size * 0.14 }} />
+          <View style={{ width: 2, height: size * 0.22, backgroundColor: '#1c1c1e', transform: [{ rotate: '-35deg' }], position: 'absolute', right: -size * 0.14 }} />
+        </View>
+        {/* Legs */}
         <View style={{ flexDirection: 'row', marginTop: -1 }}>
           <View style={{ width: 2, height: size * 0.28, backgroundColor: '#333', transform: [{ rotate: '10deg' }], marginRight: 4 }} />
           <View style={{ width: 2, height: size * 0.28, backgroundColor: '#333', transform: [{ rotate: '-10deg' }] }} />
@@ -153,7 +171,7 @@ export default function HQ() {
           <View style={styles.desk} />
           <View style={styles.operatorWrap}>
             {hqObama ? (
-              <StickObama obama={hqObama} size={100} />
+              <StickObama obama={hqObama} size={150} />
             ) : (
               <Text style={styles.noOperator}>NO OPERATOR</Text>
             )}
@@ -221,7 +239,7 @@ const styles = StyleSheet.create({
   navSub: { fontSize: 11, color: 'rgba(0,0,0,0.35)', marginTop: 2, letterSpacing: 1 },
   navArrow: { fontSize: 24, fontWeight: '200' },
   workstation: {
-    width: '100%', maxWidth: 400, height: 280, marginTop: 32,
+    width: '100%', maxWidth: 400, height: 340, marginTop: 32,
     alignItems: 'center', justifyContent: 'flex-end', position: 'relative', overflow: 'hidden',
   },
   dataStreams: { ...StyleSheet.absoluteFillObject },

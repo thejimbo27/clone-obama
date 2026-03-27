@@ -1,53 +1,68 @@
-// Server-side leaderboard store.
-// This module runs in the Metro/server process, NOT the browser.
-// Scores are persisted to data/leaderboard.json so they survive server restarts.
-// To use a real DB instead, set DB_CONNECTION_STRING in config.js.
+// Server-side leaderboard store — SQLite backed.
+// Uses createRequire to load native better-sqlite3, bypassing Metro's bundler.
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { mkdirSync } from 'fs';
+import { createRequire } from 'module';
 
+const nodeRequire = createRequire(__filename);
+const Database = nodeRequire('better-sqlite3');
+
+const DB_PATH = join(process.cwd(), 'data', 'obama.db');
 const MAX_ENTRIES = 50;
-const DATA_FILE = join(process.cwd(), 'data', 'leaderboard.json');
 
-function loadFromDisk() {
-  try {
-    return JSON.parse(readFileSync(DATA_FILE, 'utf8'));
-  } catch {
-    return [];
-  }
+let _db = null;
+function getDb() {
+  if (_db) return _db;
+  mkdirSync(join(process.cwd(), 'data'), { recursive: true });
+  _db = new Database(DB_PATH);
+  _db.pragma('journal_mode = WAL');
+  _db.pragma('foreign_keys = ON');
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS leaderboard (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      score INTEGER NOT NULL DEFAULT 0,
+      stats_json TEXT DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+  return _db;
 }
-
-function saveToDisk(arr) {
-  try {
-    mkdirSync(join(process.cwd(), 'data'), { recursive: true });
-    writeFileSync(DATA_FILE, JSON.stringify(arr));
-  } catch (e) {
-    console.warn('leaderboard: save failed:', e.message);
-  }
-}
-
-const entries = loadFromDisk();
 
 function upsert(entry) {
-  const idx = entries.findIndex((e) => e.name === entry.name);
-  if (idx >= 0) {
-    if (entry.score > entries[idx].score) {
-      entries[idx] = { ...entry, updatedAt: Date.now() };
+  const db = getDb();
+  const existing = db.prepare('SELECT id, score FROM leaderboard WHERE name = ?').get(entry.name);
+  if (existing) {
+    if (entry.score > existing.score) {
+      db.prepare("UPDATE leaderboard SET score = ?, stats_json = ?, updated_at = datetime('now') WHERE id = ?")
+        .run(entry.score, JSON.stringify(entry.stats || {}), existing.id);
     }
   } else {
-    entries.push({ ...entry, createdAt: Date.now(), updatedAt: Date.now() });
+    db.prepare('INSERT INTO leaderboard (name, score, stats_json) VALUES (?, ?, ?)')
+      .run(entry.name, entry.score, JSON.stringify(entry.stats || {}));
   }
-  entries.sort((a, b) => b.score - a.score);
-  if (entries.length > MAX_ENTRIES) entries.length = MAX_ENTRIES;
-  saveToDisk(entries);
 }
 
 function getAll() {
-  return [...entries].sort((a, b) => b.score - a.score);
+  const db = getDb();
+  const rows = db.prepare('SELECT name, score, stats_json, created_at, updated_at FROM leaderboard ORDER BY score DESC LIMIT ?').all(MAX_ENTRIES);
+  return rows.map(r => ({
+    name: r.name,
+    score: r.score,
+    stats: JSON.parse(r.stats_json || '{}'),
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  }));
 }
 
 export function GET() {
-  return Response.json({ entries: getAll() });
+  try {
+    return Response.json({ entries: getAll() });
+  } catch (e) {
+    return Response.json({ error: e.message }, { status: 500 });
+  }
 }
 
 export async function POST(request) {

@@ -1,0 +1,57 @@
+<%- include('partials/head') %>
+
+<h1><%= accessory ? 'EDIT ACCESSORY' : 'NEW ACCESSORY' %></h1>
+
+<div class="card">
+  <form method="POST" action="<%= accessory ? '/accessories/' + accessory.id : '/accessories' %>" enctype="multipart/form-data">
+
+    <div class="row">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= accessory ? accessory.name : '' %>" required placeholder="e.g. Top Hat, Sunglasses">
+      </div>
+      <div class="field">
+        <label>Attach Point</label>
+        <select name="attach_point">
+          <% const points = ['head_top', 'head_left', 'head_right', 'torso_front', 'torso_back', 'left_hand', 'right_hand', 'left_foot', 'right_foot']; %>
+          <% points.forEach(p => { %>
+            <option value="<%= p %>" <%= accessory && accessory.attach_point === p ? 'selected' : '' %>><%= p.replace(/_/g, ' ').toUpperCase() %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Image</label>
+      <input type="file" name="image" accept="image/*" <%= !accessory ? 'required' : '' %>>
+      <% if (accessory && accessory.image) { %>
+        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+          <img src="/uploads/<%= accessory.image %>" style="width: 64px; height: 64px; border-radius: 8px; object-fit: contain; background: #222;">
+          <span style="color: #666; font-size: 12px;">Current: <%= accessory.image %></span>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="row-3">
+      <div class="field">
+        <label>Offset X</label>
+        <input type="number" name="offset_x" step="0.5" value="<%= accessory ? accessory.offset_x : 0 %>">
+      </div>
+      <div class="field">
+        <label>Offset Y</label>
+        <input type="number" name="offset_y" step="0.5" value="<%= accessory ? accessory.offset_y : 0 %>">
+      </div>
+      <div class="field">
+        <label>Scale</label>
+        <input type="number" name="scale" step="0.1" min="0.1" max="5" value="<%= accessory ? accessory.scale : 1 %>">
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; display: flex; gap: 8px;">
+      <button type="submit" class="btn btn-primary"><%= accessory ? 'Save Changes' : 'Create Accessory' %></button>
+      <a href="/accessories" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<%- include('partials/foot') %>

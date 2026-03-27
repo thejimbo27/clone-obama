@@ -1,0 +1,44 @@
+<%- include('partials/head') %>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+  <h1 style="margin-bottom: 0;">ACCESSORIES</h1>
+  <a href="/accessories/new" class="btn btn-primary">+ New Accessory</a>
+</div>
+
+<div class="card">
+  <% if (accessories.length === 0) { %>
+    <p style="color: #555; text-align: center; padding: 40px;">No accessories yet. Upload one to get started.</p>
+  <% } else { %>
+  <table>
+    <tr>
+      <th>IMAGE</th>
+      <th>NAME</th>
+      <th>ATTACH POINT</th>
+      <th>OFFSET</th>
+      <th>SCALE</th>
+      <th>ACTIONS</th>
+    </tr>
+    <% accessories.forEach(a => { %>
+    <tr>
+      <td><img src="/uploads/<%= a.image %>" class="thumb" alt=""></td>
+      <td><a href="/accessories/<%= a.id %>/edit"><%= a.name %></a></td>
+      <td style="font-size: 12px; color: #666;"><%= a.attach_point %></td>
+      <td style="font-family: monospace; color: #555; font-size: 12px;">
+        x:<%= a.offset_x %> y:<%= a.offset_y %>
+      </td>
+      <td style="font-family: monospace; color: #555;"><%= a.scale %>x</td>
+      <td>
+        <div class="actions">
+          <a href="/accessories/<%= a.id %>/edit" class="btn btn-sm">Edit</a>
+          <form method="POST" action="/accessories/<%= a.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this accessory?')">
+            <button type="submit" class="btn btn-sm btn-danger">Del</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    <% }) %>
+  </table>
+  <% } %>
+</div>
+
+<%- include('partials/foot') %>

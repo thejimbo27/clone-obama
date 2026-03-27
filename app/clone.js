@@ -18,73 +18,108 @@ const COLOR_MAP = {
   sepia: '#8B7355', inverted: '#fff',
 };
 
+function getHeadSource(obama) {
+  const t = obama.template;
+  if (t?.headshot) return { uri: `/api/uploads/${t.headshot}` };
+  return obama.isMichelle ? require('../assets/michelle.png') : require('../assets/obama.png');
+}
+
 function MiniStickFigure({ obama, size = 60 }) {
+  const t = obama.template;
   const hs = size * 0.35;
-  const isMichelle = obama.isMichelle;
   const headScales = { huge_head: 1.5, tiny_head: 0.5, squished: 0.7, stretched: 1.3 };
   const fhs = hs * (headScales[obama.rareTrait] || 1);
-  const lc = (obama.rareType === 'color' && COLOR_MAP[obama.rareTrait]) || '#333';
+  const lc = t?.body_color || (obama.rareType === 'color' && COLOR_MAP[obama.rareTrait]) || '#333';
   const ho = obama.rareTrait === 'ghost' ? 0.3 : 1;
   const ht = [];
   if (obama.rareTrait === 'sideways') ht.push({ rotate: '90deg' });
   if (obama.rareTrait === 'backwards') ht.push({ rotate: '180deg' });
+  const legCount = t?.leg_count ?? 2;
 
   return (
     <View style={{ alignItems: 'center', width: size, height: size * 1.3 }}>
       {obama.rareType === 'hat' && <Text style={{ fontSize: 14, marginBottom: -4 }}>{obama.rareTrait}</Text>}
       <Image
-        source={isMichelle ? require('../assets/michelle.png') : require('../assets/obama.png')}
+        source={getHeadSource(obama)}
         style={{ width: fhs, height: fhs, borderRadius: fhs / 2, opacity: ho, transform: ht.length ? ht : undefined }}
         resizeMode="cover"
       />
       <View style={{ alignItems: 'center', marginTop: -2 }}>
-        <View style={{ width: 1.5, height: size * 0.22, backgroundColor: lc }} />
+        <View style={{ width: 1.5, height: size * 0.22 * (t?.torso_length ?? 1), backgroundColor: lc }} />
         <View style={{ flexDirection: 'row', marginTop: -1 }}>
-          <View style={{ width: 1.5, height: size * 0.2, backgroundColor: lc, transform: [{ rotate: '12deg' }], marginRight: 3 }} />
-          <View style={{ width: 1.5, height: size * 0.2, backgroundColor: lc, transform: [{ rotate: '-12deg' }] }} />
+          {Array.from({ length: legCount }).map((_, i) => {
+            const a = legCount === 2 ? (i === 0 ? '12deg' : '-12deg') : `${-18 + i * 12}deg`;
+            return <View key={i} style={{ width: 1.5, height: size * 0.2 * (t?.leg_length ?? 1), backgroundColor: lc, transform: [{ rotate: a }], marginRight: i < legCount - 1 ? 3 : 0 }} />;
+          })}
         </View>
       </View>
     </View>
   );
 }
 
+function AccessoryImage({ accessory, size }) {
+  const s = size * (accessory.scale || 1) * 0.25;
+  return (
+    <Image
+      source={{ uri: `/api/uploads/${accessory.image}` }}
+      style={{ width: s, height: s, position: 'absolute' }}
+      resizeMode="contain"
+    />
+  );
+}
+
 function BigStickFigure({ obama, size = 130 }) {
+  const t = obama.template;
   const hs = size * 0.32;
-  const isMichelle = obama.isMichelle;
   const headScales = { huge_head: 1.6, tiny_head: 0.5, squished: 0.7, stretched: 1.3 };
   const fhs = hs * (headScales[obama.rareTrait] || 1);
-  const lc = (obama.rareType === 'color' && COLOR_MAP[obama.rareTrait]) || '#333';
+  const lc = t?.body_color || (obama.rareType === 'color' && COLOR_MAP[obama.rareTrait]) || '#333';
   const ho = obama.rareTrait === 'ghost' ? 0.3 : 1;
   const ht = [];
   if (obama.rareTrait === 'sideways') ht.push({ rotate: '90deg' });
   if (obama.rareTrait === 'backwards') ht.push({ rotate: '180deg' });
-  const showArms = obama.rareTrait !== 'no_arms';
-  const legCount = obama.rareTrait === 'extra_legs' ? 4 : 2;
+  const armCount = t?.arm_count ?? 2;
+  const showArms = armCount > 0 && obama.rareTrait !== 'no_arms';
+  const legCount = t?.leg_count ?? (obama.rareTrait === 'extra_legs' ? 4 : 2);
   const bw = obama.rareTrait === 'thicc' ? 3.5 : 2;
-  const nk = obama.rareTrait === 'long_neck' ? size * 0.12 : 0;
-  const aLen = obama.rareTrait === 'noodle_arms' ? size * 0.32 : size * 0.2;
+  const torsoMul = t?.torso_length ?? 1;
+  const nk = obama.rareTrait === 'long_neck' ? size * 0.12 : (torsoMul > 1.2 ? size * 0.06 * (torsoMul - 1) : 0);
+  const armMul = t?.arm_length ?? 1;
+  const legMul = t?.leg_length ?? 1;
+  const aLen = (obama.rareTrait === 'noodle_arms' ? size * 0.32 : size * 0.2) * armMul;
+  const accessories = t?.accessories || [];
 
   return (
     <View style={{ alignItems: 'center', width: size, height: size * 1.45 }}>
       {obama.rareType === 'hat' && <Text style={{ fontSize: 26, marginBottom: -6, zIndex: 3 }}>{obama.rareTrait}</Text>}
+      {accessories.filter(a => a.attach_point === 'head_top').map(a => (
+        <View key={a.id} style={{ zIndex: 4, marginBottom: -4 }}>
+          <AccessoryImage accessory={a} size={size} />
+        </View>
+      ))}
       <Image
-        source={isMichelle ? require('../assets/michelle.png') : require('../assets/obama.png')}
+        source={getHeadSource(obama)}
         style={{ width: fhs, height: fhs, borderRadius: fhs / 2, zIndex: 2, opacity: ho, transform: ht.length ? ht : undefined }}
         resizeMode="cover"
       />
       {nk > 0 && <View style={{ width: bw, height: nk, backgroundColor: lc, marginTop: -2 }} />}
       <View style={{ alignItems: 'center', marginTop: nk > 0 ? -1 : -3 }}>
-        <View style={{ width: bw, height: size * 0.24, backgroundColor: lc }} />
+        <View style={{ width: bw, height: size * 0.24 * torsoMul, backgroundColor: lc }} />
         {showArms && (
           <View style={{ position: 'absolute', top: 4 }}>
-            <View style={{ width: 2, height: aLen, backgroundColor: lc, transform: [{ rotate: '40deg' }], position: 'absolute', left: -size * 0.12 }} />
-            <View style={{ width: 2, height: aLen, backgroundColor: lc, transform: [{ rotate: '-40deg' }], position: 'absolute', right: -size * 0.12 }} />
+            {Array.from({ length: armCount }).map((_, i) => {
+              const angle = armCount === 2
+                ? (i === 0 ? '40deg' : '-40deg')
+                : `${-50 + i * (100 / (armCount - 1))}deg`;
+              const side = i < armCount / 2 ? { left: -size * 0.12 - i * 4 } : { right: -size * 0.12 - (armCount - 1 - i) * 4 };
+              return <View key={i} style={{ width: 2, height: aLen, backgroundColor: lc, transform: [{ rotate: angle }], position: 'absolute', ...side }} />;
+            })}
           </View>
         )}
         <View style={{ flexDirection: 'row', marginTop: -1, gap: legCount > 2 ? 2 : 4 }}>
           {Array.from({ length: legCount }).map((_, i) => {
-            const a = legCount === 2 ? (i === 0 ? '12deg' : '-12deg') : `${-18 + i * 12}deg`;
-            return <View key={i} style={{ width: 2, height: size * 0.24, backgroundColor: lc, transform: [{ rotate: a }] }} />;
+            const a = legCount === 2 ? (i === 0 ? '12deg' : '-12deg') : `${-18 + i * (36 / (legCount - 1))}deg`;
+            return <View key={i} style={{ width: 2, height: size * 0.24 * legMul, backgroundColor: lc, transform: [{ rotate: a }] }} />;
           })}
         </View>
       </View>
@@ -128,6 +163,7 @@ export default function CloneScreen() {
   const toastAnim = useRef(new Animated.Value(0)).current;
   const riffSound = useRef(null);
   const synthSound = useRef(null);
+  const syntheticSound = useRef(null);
 
   useEffect(() => {
     Animated.loop(Animated.sequence([
@@ -147,13 +183,17 @@ export default function CloneScreen() {
         riffSound.current = s1;
         const { sound: s2 } = await Audio.Sound.createAsync(require('../assets/synth.mp3'));
         synthSound.current = s2;
+        const { sound: s3 } = await Audio.Sound.createAsync(require('../assets/synthetic.mp3'));
+        syntheticSound.current = s3;
       } catch (e) {}
     })();
-    return () => { riffSound.current?.unloadAsync(); synthSound.current?.unloadAsync(); };
+    return () => { riffSound.current?.unloadAsync(); synthSound.current?.unloadAsync(); syntheticSound.current?.unloadAsync(); };
   }, []);
 
-  const playSound = useCallback((isMichelle) => {
-    const snd = isMichelle ? riffSound.current : synthSound.current;
+  const playSound = useCallback((obama) => {
+    const snd = obama.isMichelle ? synthSound.current
+      : obama.isRare ? riffSound.current
+      : syntheticSound.current;
     snd?.setPositionAsync(0).then(() => snd?.playAsync());
   }, []);
 
@@ -163,7 +203,7 @@ export default function CloneScreen() {
     setTimeout(() => setShowFlash(false), 100);
 
     if (obama.isRare || obama.isMichelle || obama.isSynthetic) {
-      playSound(obama.isMichelle);
+      playSound(obama);
       setSpecialClone(obama);
       cardOpacity.setValue(0);
       cardScale.setValue(0.8);

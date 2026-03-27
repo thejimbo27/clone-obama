@@ -1,0 +1,86 @@
+<%- include('partials/head') %>
+
+<h1>DASHBOARD</h1>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-num"><%= counts.normal %></div>
+    <div class="stat-label">NORMAL</div>
+  </div>
+  <div class="stat-card" style="border-color: #1a2a3a;">
+    <div class="stat-num" style="color: #6b9fc8;"><%= counts.synthetic %></div>
+    <div class="stat-label">SYNTHETIC</div>
+  </div>
+  <div class="stat-card" style="border-color: #2a2200;">
+    <div class="stat-num" style="color: #b8860b;"><%= counts.rare %></div>
+    <div class="stat-label">RARE</div>
+  </div>
+  <div class="stat-card" style="border-color: #2a1020;">
+    <div class="stat-num" style="color: #ff69b4;"><%= counts.michelle %></div>
+    <div class="stat-label">MICHELLE</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <div>
+    <h2>Recent Templates</h2>
+    <div class="card">
+      <table>
+        <tr><th>NAME</th><th>TIER</th><th>TRAIT</th></tr>
+        <% templates.slice(0, 10).forEach(t => { %>
+        <tr>
+          <td><a href="/templates/<%= t.id %>/edit"><%= t.name %></a></td>
+          <td><span class="badge badge-<%= t.tier %>"><%= t.tier.toUpperCase() %></span></td>
+          <td style="color: #666;"><%= t.rare_trait || '—' %></td>
+        </tr>
+        <% }) %>
+      </table>
+      <div style="margin-top: 12px;">
+        <a href="/templates" class="btn btn-sm">View All →</a>
+        <a href="/templates/new" class="btn btn-sm btn-primary">+ New Template</a>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h2>Accessories (<%= accessories.length %>)</h2>
+    <div class="card">
+      <table>
+        <tr><th>IMAGE</th><th>NAME</th><th>ATTACH</th></tr>
+        <% accessories.slice(0, 8).forEach(a => { %>
+        <tr>
+          <td><img src="/uploads/<%= a.image %>" class="thumb" alt=""></td>
+          <td><a href="/accessories/<%= a.id %>/edit"><%= a.name %></a></td>
+          <td style="color: #666; font-size: 11px;"><%= a.attach_point %></td>
+        </tr>
+        <% }) %>
+        <% if (accessories.length === 0) { %>
+        <tr><td colspan="3" style="color: #444;">No accessories yet</td></tr>
+        <% } %>
+      </table>
+      <div style="margin-top: 12px;">
+        <a href="/accessories" class="btn btn-sm">View All →</a>
+        <a href="/accessories/new" class="btn btn-sm btn-primary">+ New Accessory</a>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 24px;">Leaderboard Top 10</h2>
+    <div class="card">
+      <table>
+        <tr><th>#</th><th>NAME</th><th>SCORE</th></tr>
+        <% leaderboard.slice(0, 10).forEach((e, i) => { %>
+        <tr>
+          <td style="color: #444;"><%= i + 1 %></td>
+          <td><%= e.name %></td>
+          <td style="font-family: monospace; color: #ff9500;"><%= e.score.toLocaleString() %></td>
+        </tr>
+        <% }) %>
+        <% if (leaderboard.length === 0) { %>
+        <tr><td colspan="3" style="color: #444;">No entries yet</td></tr>
+        <% } %>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/foot') %>

@@ -1,0 +1,53 @@
+<%- include('partials/head') %>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+  <h1 style="margin-bottom: 0;">OBAMA TEMPLATES</h1>
+  <a href="/templates/new" class="btn btn-primary">+ New Template</a>
+</div>
+
+<div class="card">
+  <table>
+    <tr>
+      <th>HEAD</th>
+      <th>NAME</th>
+      <th>TIER</th>
+      <th>WEIGHT</th>
+      <th>TRAIT</th>
+      <th>BODY</th>
+      <th>COLOR</th>
+      <th>ACTIONS</th>
+    </tr>
+    <% templates.forEach(t => { %>
+    <tr>
+      <td>
+        <% if (t.headshot) { %>
+          <img src="/uploads/<%= t.headshot %>" class="thumb" alt="">
+        <% } else { %>
+          <div class="thumb" style="display: flex; align-items: center; justify-content: center; font-size: 18px;">🗿</div>
+        <% } %>
+      </td>
+      <td><a href="/templates/<%= t.id %>/edit"><%= t.name %></a></td>
+      <td><span class="badge badge-<%= t.tier %>"><%= t.tier.toUpperCase() %></span></td>
+      <td style="font-family: monospace; color: #666;"><%= t.rarity_weight %></td>
+      <td style="color: #666;"><%= t.rare_trait || '—' %></td>
+      <td style="font-size: 11px; color: #555;">
+        A:<%= t.arm_count %> L:<%= t.leg_count %>
+        T:<%= t.torso_length %>x
+      </td>
+      <td>
+        <span style="display: inline-block; width: 18px; height: 18px; border-radius: 4px; background: <%= t.body_color %>; border: 1px solid #333; vertical-align: middle;"></span>
+      </td>
+      <td>
+        <div class="actions">
+          <a href="/templates/<%= t.id %>/edit" class="btn btn-sm">Edit</a>
+          <form method="POST" action="/templates/<%= t.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this template?')">
+            <button type="submit" class="btn btn-sm btn-danger">Del</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    <% }) %>
+  </table>
+</div>
+
+<%- include('partials/foot') %>
