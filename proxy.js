@@ -1,4 +1,4 @@
-// Reverse proxy — single entry point for tunnel
+// Reverse proxy — single entry point (port 4000)
 // Routes /admin/* → admin panel (3000), everything else → Expo (8082)
 
 import { createServer } from 'http';

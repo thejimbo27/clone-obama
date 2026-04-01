@@ -187,7 +187,7 @@ export default function HQ() {
           <Text style={styles.consoleLine}>{'>'} SYS.STATUS ............ <Text style={{ color: '#34c759' }}>ONLINE</Text></Text>
           <Text style={styles.consoleLine}>{'>'} CLONES.ACTIVE ......... {obamas.length}</Text>
           <Text style={styles.consoleLine}>{'>'} CLONES.TOTAL .......... {totalCloned}</Text>
-          <Text style={styles.consoleLine}>{'>'} SPECIALTIES ........... {stats.specialties}</Text>
+          <Text style={styles.consoleLine}>{'>'} SYNTHETICS ............ {stats.synthetics}</Text>
           <Text style={styles.consoleLine}>{'>'} RARES ................. {stats.rares}</Text>
           <Text style={styles.consoleLine}>{'>'} MISSILES.LAUNCHED ..... {stats.missiles}</Text>
           <Text style={styles.consoleLine}>{'>'} SCORE ................. <Text style={{ color: '#ff9500' }}>{score.toLocaleString()}</Text></Text>

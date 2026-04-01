@@ -102,6 +102,12 @@ app.use((req, res, next) => {
 
 // ─── Basic Auth (timing-safe) ────────────────────────
 const authFailDelay = new Map(); // IP → timestamp of last fail
+// Prune stale entries every 60s to prevent unbounded growth
+setInterval(() => {
+  const cutoff = Date.now() - 60000;
+  for (const [ip, ts] of authFailDelay) if (ts < cutoff) authFailDelay.delete(ip);
+}, 60000).unref();
+
 app.use((req, res, next) => {
   const ip = req.ip || req.socket.remoteAddress;
   const lastFail = authFailDelay.get(ip) || 0;

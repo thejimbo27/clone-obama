@@ -1,11 +1,8 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 
 const MONO = Platform.OS === 'web' ? 'monospace' : 'Courier';
 
-// React.lazy defers module evaluation of IslandCanvas (which imports Skia)
-// until this component actually renders. By then, _layout.js's SkiaLoader
-// has already called LoadSkiaWeb() and set global.CanvasKit.
 const IslandCanvas = React.lazy(() => import('../components/IslandCanvas'));
 
 function LoadingFallback() {
@@ -18,6 +15,19 @@ function LoadingFallback() {
 }
 
 export default function IslandScreen() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // Wait for CanvasKit WASM before letting Skia components mount
+    if (global.CanvasKit) { setReady(true); return; }
+    const id = setInterval(() => {
+      if (global.CanvasKit) { setReady(true); clearInterval(id); }
+    }, 50);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!ready) return <LoadingFallback />;
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <IslandCanvas />

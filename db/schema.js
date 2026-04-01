@@ -41,6 +41,7 @@ function initSchema(db) {
       rare_type TEXT DEFAULT NULL
         CHECK(rare_type IN (NULL, 'hat', 'deformity', 'color')),
       rare_trait TEXT DEFAULT NULL,
+      name_override TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );

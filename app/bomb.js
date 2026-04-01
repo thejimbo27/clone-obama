@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 
 const MONO = Platform.OS === 'web' ? 'monospace' : 'Courier';
@@ -15,6 +15,18 @@ function LoadingFallback() {
 }
 
 export default function BombScreen() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (global.CanvasKit) { setReady(true); return; }
+    const id = setInterval(() => {
+      if (global.CanvasKit) { setReady(true); clearInterval(id); }
+    }, 50);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!ready) return <LoadingFallback />;
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <BombCanvas />

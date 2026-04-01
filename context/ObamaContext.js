@@ -1,8 +1,34 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { calculateScore } from '../services/leaderboard';
 import config from '../config';
 
 const NAMES = ['Barack', 'Barry', 'B-Rock', 'Baz', 'Obi', 'Baracko', 'Bam', 'Rock', 'B.O.', 'Obeezy'];
+
+// ─── Session persistence (survives server-mode page navigations) ──
+const STORAGE_KEY = 'obama_hq_state';
+const canPersist = Platform.OS === 'web' && typeof sessionStorage !== 'undefined';
+
+function saveState(state) {
+  if (!canPersist) return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...state,
+      collectedRareTraits: [...state.collectedRareTraits],
+    }));
+  } catch {}
+}
+
+function loadState() {
+  if (!canPersist) return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    s.collectedRareTraits = new Set(s.collectedRareTraits || []);
+    return s;
+  } catch { return null; }
+}
 
 // ─── Hardcoded fallbacks (used when DB is unreachable) ──
 const RARE_HATS = ['🎩', '👑', '🥳', '🤠'];
@@ -107,20 +133,25 @@ function generateFallback() {
 const ObamaContext = createContext(null);
 
 export function ObamaProvider({ children }) {
-  const [obamas, setObamas] = useState([
+  const saved = useRef(loadState()).current;
+
+  const [obamas, setObamas] = useState(saved?.obamas || [
     { id: 1, name: 'Barack', isMichelle: false, isRare: false, isSynthetic: false, rareType: null, rareTrait: null, template: null },
   ]);
-  const [totalCloned, setTotalCloned] = useState(1);
-  const [hqObamaId, setHqObamaId] = useState(1);
-  const [missilesLaunched, setMissilesLaunched] = useState(0);
-  const [pagesVisited, setPagesVisited] = useState(0);
-  const [raresObtained, setRaresObtained] = useState(0);
-  const [syntheticsObtained, setSyntheticsObtained] = useState(0);
-  const [michellesObtained, setMichellesObtained] = useState(0);
-  const [playerName, setPlayerName] = useState(config.PLAYER_NAME_DEFAULT);
+  const [totalCloned, setTotalCloned] = useState(saved?.totalCloned || 1);
+  const [hqObamaId, setHqObamaId] = useState(saved?.hqObamaId || 1);
+  const [missilesLaunched, setMissilesLaunched] = useState(saved?.missilesLaunched || 0);
+  const [pagesVisited, setPagesVisited] = useState(saved?.pagesVisited || 0);
+  const [raresObtained, setRaresObtained] = useState(saved?.raresObtained || 0);
+  const [syntheticsObtained, setSyntheticsObtained] = useState(saved?.syntheticsObtained || 0);
+  const [michellesObtained, setMichellesObtained] = useState(saved?.michellesObtained || 0);
+  const [playerName, setPlayerName] = useState(saved?.playerName || config.PLAYER_NAME_DEFAULT);
 
-  const [collectedRareTraits, setCollectedRareTraits] = useState(new Set());
-  const [bidenPopupShown, setBidenPopupShown] = useState(false);
+  const [collectedRareTraits, setCollectedRareTraits] = useState(saved?.collectedRareTraits || new Set());
+  const [bidenPopupShown, setBidenPopupShown] = useState(saved?.bidenPopupShown || false);
+
+  // Restore nextId so clones don't get duplicate IDs
+  if (saved?.nextId) nextId = saved.nextId;
 
   // ─── Fetch templates from server (poll every 3s for admin changes) ──
   const templatesRef = useRef(null); // { normal: [], synthetic: [], rare: [], michelle: [] }
@@ -138,7 +169,7 @@ export function ObamaProvider({ children }) {
         templatesRef.current = byTier;
       } catch (e) {
         if (!templatesRef.current) {
-          console.warn('Failed to fetch templates, using hardcoded fallback:', e.message);
+          // Silent — routes use hardcoded fallback
         }
       }
     }
@@ -146,6 +177,17 @@ export function ObamaProvider({ children }) {
     const interval = setInterval(fetchTemplates, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // ─── Persist state to sessionStorage on every change ──
+  useEffect(() => {
+    saveState({
+      obamas, totalCloned, hqObamaId, missilesLaunched, pagesVisited,
+      raresObtained, syntheticsObtained, michellesObtained, playerName,
+      collectedRareTraits, bidenPopupShown, nextId,
+    });
+  }, [obamas, totalCloned, hqObamaId, missilesLaunched, pagesVisited,
+      raresObtained, syntheticsObtained, michellesObtained, playerName,
+      collectedRareTraits, bidenPopupShown]);
 
   const addObama = useCallback(() => {
     const newObama = templatesRef.current

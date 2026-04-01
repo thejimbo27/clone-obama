@@ -24,15 +24,22 @@ function getAllTemplates() {
   const db = getDb();
   const templates = db.prepare('SELECT * FROM obama_templates ORDER BY tier, name').all();
 
-  const accStmt = db.prepare(`
-    SELECT a.* FROM accessories a
+  // Single query for all accessories instead of N+1
+  const allAcc = db.prepare(`
+    SELECT ta.template_id, a.* FROM accessories a
     JOIN template_accessories ta ON ta.accessory_id = a.id
-    WHERE ta.template_id = ?
-  `);
+  `).all();
+
+  const accByTemplate = {};
+  for (const row of allAcc) {
+    const tid = row.template_id;
+    delete row.template_id;
+    (accByTemplate[tid] ||= []).push(row);
+  }
 
   return templates.map(t => ({
     ...t,
-    accessories: accStmt.all(t.id),
+    accessories: accByTemplate[t.id] || [],
   }));
 }
 

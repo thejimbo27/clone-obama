@@ -147,12 +147,7 @@ export default function LeaderboardScreen() {
 
         {/* DB info */}
         <View style={styles.dbInfo}>
-          <Text style={styles.dbLabel}>
-            {config.DB_CONNECTION_STRING
-              ? `DB: ${config.DB_CONNECTION_STRING.split('@')[1]?.split('/')[0] || 'connected'}`
-              : 'STORAGE: SERVER (PERSISTS ACROSS RELOADS)'}
-          </Text>
-          <Text style={styles.dbHint}>Set DB_CONNECTION_STRING in config.js for a real database</Text>
+          <Text style={styles.dbLabel}>STORAGE: SQLITE (PERSISTENT)</Text>
         </View>
 
       </ScrollView>
@@ -272,5 +267,4 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)',
   },
   dbLabel: { fontSize: 9, color: 'rgba(0,0,0,0.2)', fontFamily: MONO, letterSpacing: 2 },
-  dbHint: { fontSize: 9, color: 'rgba(0,0,0,0.1)', marginTop: 4, letterSpacing: 1 },
 });

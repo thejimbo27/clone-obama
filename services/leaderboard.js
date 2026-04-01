@@ -1,18 +1,13 @@
 // ─────────────────────────────────────────────────────
 // Leaderboard Service
 // ─────────────────────────────────────────────────────
-// Default: module-level singleton store. Persists across
-// navigation and re-renders, resets on full page reload.
-//
-// When DB_CONNECTION_STRING is set in config.js, calls the
-// server-side API route at /api/leaderboard instead.
-// That requires `"output": "server"` in app.json web config.
+// Routes through /api/leaderboard (SQLite-backed), falls back to
+// module-level in-memory store if API is unreachable.
 
 import config from '../config';
 
 const MAX = config.LEADERBOARD_MAX_ENTRIES || 50;
 const API_URL = '/api/leaderboard';
-const useAPI = true; // always route through server API; falls back to local on failure
 
 // ─── Module-level store (singleton, survives navigation) ──
 
@@ -62,20 +57,16 @@ async function apiPost(entry) {
 // ─── Public API ─────────────────────────────────────
 
 export async function getLeaderboard() {
-  if (useAPI) {
-    try { return await apiGet(); }
-    catch (e) { console.warn('API leaderboard unavailable, using local:', e.message); }
-  }
-  return localGetAll();
+  try { return await apiGet(); }
+  catch { return localGetAll(); }
 }
 
 export async function submitScore(entry) {
-  if (useAPI) {
-    try { return await apiPost(entry); }
-    catch (e) { console.warn('API submit unavailable, using local:', e.message); }
+  try { return await apiPost(entry); }
+  catch {
+    localUpsert(entry);
+    return localGetAll();
   }
-  localUpsert(entry);
-  return localGetAll();
 }
 
 // ─── Score Calculator ───────────────────────────────
